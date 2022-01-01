@@ -71,10 +71,11 @@ y_hb_barns = y_hb_millibarns / 1000
 
 valid = x_endf < 550e3
 invalid = x_endf > 550e3
-plt.plot(x_endf[valid], y_hb_barns[valid] / y_endf[valid])
-plt.plot(x_endf[invalid],
+ax.plot(x_endf[valid], y_hb_barns[valid] / y_endf[valid])
+ax.plot(x_endf[invalid],
          y_hb_barns[invalid] / y_endf[invalid],
          ls='dashed',
          color='tab:blue')
 
+plt.tight_layout()
 plt.show()

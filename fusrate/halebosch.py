@@ -111,6 +111,7 @@ class HaleBoschReactivity():
                 1.17302e-9, 1.51361e-2, 7.51886e-2, 4.60643e-3, 1.35000e-2,
                 -1.06750e-4, 1.36600e-5
             ],
+            'range': [0.2, 100],
         },
         DHE3_NAME: {
             'Bg':
@@ -121,16 +122,19 @@ class HaleBoschReactivity():
                 5.51036e-10, 6.41918e-3, -2.02896e-3, -1.91080e-5, 1.35776e-4,
                 0, 0
             ],
+            'range': [0.5,190],
         },
         DDHE3_NAME: {
             'Bg': 31.3970,
             'mrc²': 937814,
             'c': [5.43360e-12, 5.85778e-3, 7.68222e-3, 0, -2.96400e-6, 0, 0],
+            'range': [0.2,100],
         },
         DDT_NAME: {
             'Bg': 31.3970,
             'mrc²': 937814,
             'c': [5.65718e-12, 3.41267e-3, 1.99167e-3, 0, 1.05060e-5, 0, 0],
+            'range': [0.2,100],
         },
     }
 
@@ -183,6 +187,9 @@ class HaleBoschReactivity():
 
     def canonical_reaction_name(self):
         return self.reaction_name
+
+    def prescribed_range(self):
+        return self.COEFFICIENTS[self.reaction_name]['range']
 
 
 class HaleBoschCrossSectionCalc():

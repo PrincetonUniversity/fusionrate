@@ -1,5 +1,5 @@
 from fusrate.load_data import load_data_file
-from scipy.interpolate import interp1d
+from scipy.interpolate import InterpolatedUnivariateSpline
 import numpy as np
 
 class LogLogExtrapolation():
@@ -17,6 +17,7 @@ class LogLogExtrapolation():
         self.x = x
         self.y = y
         self.max_x = max(x)
+        self.min_x = min(x)
         logx = np.log(x + self.SMALL)
         logy = np.log(y)
         data = np.array([logx, logy]).T
@@ -33,8 +34,9 @@ class LogLogExtrapolation():
 
         self.logx, self.logy = self.data.T
 
-        self.interpolator = interp1d(self.logx, self.logy, kind='quadratic',
-                fill_value='extrapolate', assume_sorted=True)
+        #self.interpolator = interp1d(self.logx, self.logy, kind='quadratic',
+        #        fill_value='extrapolate', assume_sorted=True)
+        self.interpolator = InterpolatedUnivariateSpline(self.logx, self.logy, k=2, ext=0)
 
     def __call__(self, newx):
         r"""Generate new values
