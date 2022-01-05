@@ -9,7 +9,7 @@ def locate_data_file(dname):
         with resources.path(DEFAULT_DATA_DIR, dname) as f:
             return f
     else:
-        raise FileNotFoundError(dname + "not found in data directory.")
+        raise FileNotFoundError(dname + " not found in data directory.")
 
 def load_data_file(dname):
     r"""Loads a 2-column csv file
