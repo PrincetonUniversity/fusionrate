@@ -71,6 +71,21 @@ class TestHaleBoschReactionNameResolver(unittest.TestCase):
     def test_DDT_4(self):
         assert (DDT_NAME == rn.hale_bosch_name_resolver('²H+²H→¹H+³H'))
 
+    def test_DDHe3_0(self):
+        assert (DDHE3_NAME == rn.hale_bosch_name_resolver(DDHE3_NAME))
+
+    def test_DDHe3_1(self):
+        assert (DDHE3_NAME == rn.hale_bosch_name_resolver('D(d,n)3He'))
+
+    def test_DDHe3_2(self):
+        assert (DDHE3_NAME == rn.hale_bosch_name_resolver('D+D→n+3He'))
+
+    def test_DDHe3_3(self):
+        assert (DDHE3_NAME == rn.hale_bosch_name_resolver('²H+²H→n+3He'))
+
+    def test_DDHe3_4(self):
+        assert (DDHE3_NAME == rn.hale_bosch_name_resolver('²H+²H→3He+n'))
+
     def test_bad_name(self):
         self.assertRaises(ValueError, rn.hale_bosch_name_resolver, 'bad')
 
