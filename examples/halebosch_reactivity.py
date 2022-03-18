@@ -7,14 +7,16 @@ line_styles = ['solid', '-.', 'solid','dashed',]
 
 fig, ax = plt.subplots(1, 2)
 
+meters_cubed_in_cm_cubed = 1e6
+
 def plot_sv(reaction):
     sv = HaleBoschReactivity(reaction)
-    e_range = sv.prescribed_range()
+    t_range = sv.prescribed_range()
 
-    e = np.logspace(*np.log10(e_range), 100)
+    t = np.logspace(*np.log10(t_range), 100)
 
-    x_hb = e
-    y_hb = sv.reactivity(e)/1e6
+    x_hb = t
+    y_hb = sv.reactivity(t)/meters_cubed_in_cm_cubed
     ax[0].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
     ax[1].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
 
