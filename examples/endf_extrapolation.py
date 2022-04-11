@@ -7,8 +7,6 @@ from fusrate.endf import LogLogExtrapolation
 import numpy as np
 import matplotlib.pyplot as plt
 
-default_data_dir = 'fusrate.data'
-
 fig, ax = plt.subplots()
 ax.set_xscale('log')
 ax.set_yscale('log')
