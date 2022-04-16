@@ -50,8 +50,7 @@ if __name__=='__main__':
     import matplotlib.pyplot as plt
     import cProfile
 
-    default_data_dir = 'fusrate.data'
-    data_name = 'cross_section_dt.csv'
+    data_name = 'cross_section_t(d,n)a.csv'
     x, y = load_data_file(data_name)
     lle = LogLogExtrapolation(x, y, linear_extension=True)
 

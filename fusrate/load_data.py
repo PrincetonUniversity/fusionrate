@@ -19,7 +19,6 @@ def load_data_file(dname):
 
 
 if __name__=='__main__':
-    default_data_dir = 'fusrate.data'
-    data_name = 'cross_section_dt.csv'
+    data_name = 'cross_section_t(d,n)a.csv'
     print(load_data_file(data_name).T)
 
