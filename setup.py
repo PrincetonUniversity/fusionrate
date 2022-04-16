@@ -21,4 +21,8 @@ setuptools.setup(
     install_requires=[
         "plasmapy >= 0.6.0",
     ],
+    include_package_data=True,
+    package_data = {
+        '': ['*.csv'],
+    },
 )
