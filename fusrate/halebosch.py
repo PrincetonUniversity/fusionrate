@@ -6,7 +6,8 @@ from fusrate.reactionnames import hale_bosch_name_resolver
 
 import numpy as np
 
-class HaleBoschCrossSection():
+
+class HaleBoschCrossSection:
     r"""Cross section and derivative for four common reactions
 
     References
@@ -17,37 +18,37 @@ class HaleBoschCrossSection():
     """
     COEFFICIENTS = {
         DT_NAME: {
-            'Bg': 34.3827,
-            'a': [6.927e4, 7.454e8, 2.050e6, 5.2002e4, 0.0],
-            'b': [6.38e1, -9.95e-1, 6.981e-5, 1.728e-4],
-            'range': [0.5, 550],
+            "Bg": 34.3827,
+            "a": [6.927e4, 7.454e8, 2.050e6, 5.2002e4, 0.0],
+            "b": [6.38e1, -9.95e-1, 6.981e-5, 1.728e-4],
+            "range": [0.5, 550],
         },
         DHE3_NAME: {
-            'Bg': 68.7508,
-            'a': [5.7501e6, 2.5226e3, 4.5566e1, 0, 0],
-            'b': [-3.1995e-3, -8.5530e-6, 5.9014e-8, 0],
-            'range': [0.3, 900],
+            "Bg": 68.7508,
+            "a": [5.7501e6, 2.5226e3, 4.5566e1, 0, 0],
+            "b": [-3.1995e-3, -8.5530e-6, 5.9014e-8, 0],
+            "range": [0.3, 900],
         },
         DDT_NAME: {
-            'Bg': 31.3970,
-            'a': [5.5576e4, 2.1054e2, -3.2638e-2, 1.4987e-6, 1.8181e-10],
-            'b': [0, 0, 0, 0],
-            'range': [0.5, 5000],
+            "Bg": 31.3970,
+            "a": [5.5576e4, 2.1054e2, -3.2638e-2, 1.4987e-6, 1.8181e-10],
+            "b": [0, 0, 0, 0],
+            "range": [0.5, 5000],
         },
         DDHE3_NAME: {
-            'Bg': 31.3970,
-            'a': [5.3701e4, 3.3027e2, -1.2706e-1, 2.9327e-5, -2.5151e-9],
-            'b': [0, 0, 0, 0],
-            'range': [0.5, 4900],
+            "Bg": 31.3970,
+            "a": [5.3701e4, 3.3027e2, -1.2706e-1, 2.9327e-5, -2.5151e-9],
+            "b": [0, 0, 0, 0],
+            "range": [0.5, 4900],
         },
     }
 
     def __init__(self, raw_reaction_name):
         self.reaction_name = hale_bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
-        Bg = coeffs['Bg']
-        a = coeffs['a']
-        b = coeffs['b']
+        Bg = coeffs["Bg"]
+        a = coeffs["a"]
+        b = coeffs["b"]
         self.calculator = HaleBoschCrossSectionCalc(Bg, a, b)
 
     @classmethod
@@ -89,10 +90,10 @@ class HaleBoschCrossSection():
         return self.reaction_name
 
     def prescribed_range(self):
-        return self.COEFFICIENTS[self.reaction_name]['range']
+        return self.COEFFICIENTS[self.reaction_name]["range"]
 
 
-class HaleBoschReactivity():
+class HaleBoschReactivity:
     r"""Maxwellian-averaged reactivity for four common reactions
 
     References
@@ -103,47 +104,53 @@ class HaleBoschReactivity():
     """
     COEFFICIENTS = {
         DT_NAME: {
-            'Bg':
-            34.3827,
-            'mrc²':
-            1124656,
-            'c': [
-                1.17302e-9, 1.51361e-2, 7.51886e-2, 4.60643e-3, 1.35000e-2,
-                -1.06750e-4, 1.36600e-5
+            "Bg": 34.3827,
+            "mrc²": 1124656,
+            "c": [
+                1.17302e-9,
+                1.51361e-2,
+                7.51886e-2,
+                4.60643e-3,
+                1.35000e-2,
+                -1.06750e-4,
+                1.36600e-5,
             ],
-            'range': [0.2, 100],
+            "range": [0.2, 100],
         },
         DHE3_NAME: {
-            'Bg':
-            68.7508,
-            'mrc²':
-            1124572,
-            'c': [
-                5.51036e-10, 6.41918e-3, -2.02896e-3, -1.91080e-5, 1.35776e-4,
-                0, 0
+            "Bg": 68.7508,
+            "mrc²": 1124572,
+            "c": [
+                5.51036e-10,
+                6.41918e-3,
+                -2.02896e-3,
+                -1.91080e-5,
+                1.35776e-4,
+                0,
+                0,
             ],
-            'range': [0.5,190],
+            "range": [0.5, 190],
         },
         DDHE3_NAME: {
-            'Bg': 31.3970,
-            'mrc²': 937814,
-            'c': [5.43360e-12, 5.85778e-3, 7.68222e-3, 0, -2.96400e-6, 0, 0],
-            'range': [0.2,100],
+            "Bg": 31.3970,
+            "mrc²": 937814,
+            "c": [5.43360e-12, 5.85778e-3, 7.68222e-3, 0, -2.96400e-6, 0, 0],
+            "range": [0.2, 100],
         },
         DDT_NAME: {
-            'Bg': 31.3970,
-            'mrc²': 937814,
-            'c': [5.65718e-12, 3.41267e-3, 1.99167e-3, 0, 1.05060e-5, 0, 0],
-            'range': [0.2,100],
+            "Bg": 31.3970,
+            "mrc²": 937814,
+            "c": [5.65718e-12, 3.41267e-3, 1.99167e-3, 0, 1.05060e-5, 0, 0],
+            "range": [0.2, 100],
         },
     }
 
     def __init__(self, raw_reaction_name):
         self.reaction_name = hale_bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
-        Bg = coeffs['Bg']
-        mrc2 = coeffs['mrc²']
-        c = coeffs['c']
+        Bg = coeffs["Bg"]
+        mrc2 = coeffs["mrc²"]
+        c = coeffs["c"]
         self.calculator = HaleBoschReactivityCalc(Bg, mrc2, c)
 
     @classmethod
@@ -189,12 +196,12 @@ class HaleBoschReactivity():
         return self.reaction_name
 
     def prescribed_range(self):
-        return self.COEFFICIENTS[self.reaction_name]['range']
+        return self.COEFFICIENTS[self.reaction_name]["range"]
 
 
-class HaleBoschCrossSectionCalc():
-    r"""Calculates cross sections of the Hale-Bosch type
-    """
+class HaleBoschCrossSectionCalc:
+    r"""Calculates cross sections of the Hale-Bosch type"""
+
     def __init__(self, bg, a, b):
         self.bg = bg
         self.a1 = a[0]
@@ -258,8 +265,11 @@ class HaleBoschCrossSectionCalc():
         denom = 1 + e * (b1 + e * (b2 + e * (b3 + e * b4)))
         ns1 = a3 + e * (a4 + a5 * e)
         ds1 = b2 + e * (b3 + b4 * e)
-        term1 = -(b1 + e * ds1 + e * (ds1 + e *
-                                      (b3 + 2 * b4 * e))) * numer / denom**2
+        term1 = (
+            -(b1 + e * ds1 + e * (ds1 + e * (b3 + 2 * b4 * e)))
+            * numer
+            / denom ** 2
+        )
         term2 = a2 + e * ns1 + e * (ns1 + e * (a4 + 2 * a5 * e)) / denom
         return term1 + term2
 
@@ -294,11 +304,13 @@ class HaleBoschCrossSectionCalc():
             cm²/keV
         """
         exp_term = np.exp(-self.bg / np.sqrt(e))
-        exp_term * ((self.bg - 2 * e**(1 / 2)) * self.s(e) +
-                    2 * e**(3 / 2) * ds_de(e)) / (2 * e**(5 / 2))
+        exp_term * (
+            (self.bg - 2 * e ** (1 / 2)) * self.s(e)
+            + 2 * e ** (3 / 2) * ds_de(e)
+        ) / (2 * e ** (5 / 2))
 
 
-class HaleBoschReactivityCalc():
+class HaleBoschReactivityCalc:
     r"""Calculates Maxwell-averaged reactivity
 
     Todo: test whether the 'optimizations' are really any faster;
@@ -310,8 +322,9 @@ class HaleBoschReactivityCalc():
           Improved Formulas for Fusion Cross-Sections and
           Thermal Reactivities. Nuclear Fusion 1992, 32 (4).
     """
+
     def __init__(self, bg, mrc2, cd):
-        self.bg2 = bg**2
+        self.bg2 = bg ** 2
         self.mrc2 = mrc2
         self.c1 = cd[0]
         self.c2 = cd[1]
@@ -342,14 +355,13 @@ class HaleBoschReactivityCalc():
         θ: array_like
         """
         bg2 = self.bg2
-        ξ = (bg2 / (4 * θ))**(1 / 3)
+        ξ = (bg2 / (4 * θ)) ** (1 / 3)
         return ξ
 
     def dxi_dtheta(self, θ):
-        r"""Derivative
-        """
+        r"""Derivative"""
         bg2 = self.bg2
-        return -bg2**(1 / 3) / (3 * 2**(2 / 3) * θ**(4 / 3))
+        return -(bg2 ** (1 / 3)) / (3 * 2 ** (2 / 3) * θ ** (4 / 3))
 
     def dtfunc(self, t):
         r"""Equation (13)
@@ -373,8 +385,7 @@ class HaleBoschReactivityCalc():
         return data
 
     def dtderiv(self, t):
-        r"""Derivative of Equation (13)
-        """
+        r"""Derivative of Equation (13)"""
         c2 = self.c2
         c3 = self.c3
         c4 = self.c4
@@ -385,11 +396,15 @@ class HaleBoschReactivityCalc():
         a = c4 + c6 * t
         b = c2 + t * a
         c = 1 - t * b / odd_denom
-        d1 = t * b * (c3 + t * (c5 + c7 * t) + t *
-                      (c5 + 2 * c7 * 5)) / odd_denom**2
+        d1 = (
+            t
+            * b
+            * (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * 5))
+            / odd_denom ** 2
+        )
         d2 = t * (c4 + 2 * c6 * t) / odd_denom
         d3 = -b / odd_denom
-        return -(t / c**2) * (d1 - d2 - d3) + 1 / c
+        return -(t / c ** 2) * (d1 - d2 - d3) + 1 / c
 
     def hefunc(self, t):
         r"""Equation (13), specialized
@@ -408,19 +423,18 @@ class HaleBoschReactivityCalc():
         return t / (1 - numer / denom)
 
     def hederiv(self, t):
-        r"""Derivative of Equation (13), specialized
-        """
+        r"""Derivative of Equation (13), specialized"""
         c2 = self.c2
         c3 = self.c3
         c4 = self.c4
         c5 = self.c5
         smdenom = 1 + t * (c3 + c5 * t)
-        a = (c2 + c4 * t)
+        a = c2 + c4 * t
         b = 1 - t * a / smdenom
-        d1 = t * a * (c3 + 2 * c5 * t) / smdenom**2
+        d1 = t * a * (c3 + 2 * c5 * t) / smdenom ** 2
         d2 = c4 * t / smdenom
         d3 = a / smdenom
-        return -(t / b**2) * (d1 - d2 - d3) + 1 / b
+        return -(t / b ** 2) * (d1 - d2 - d3) + 1 / b
 
     def ddfunc(self, t):
         r"""Equation (13), specialized
@@ -439,16 +453,15 @@ class HaleBoschReactivityCalc():
         return t / (1 - numer / denom)
 
     def ddderiv(self, t):
-        r"""Derivative of Equation (13), specialized
-        """
+        r"""Derivative of Equation (13), specialized"""
         c2 = self.c2
         c3 = self.c3
         c5 = self.c5
         smdenom = 1 + t * (c3 + c5 * t)
         a = 1 - c2 * t / smdenom
-        d1 = c2 * t * (c3 + 2 * c5 + t) / smdenom**2
+        d1 = c2 * t * (c3 + 2 * c5 + t) / smdenom ** 2
         d2 = c2 / smdenom
-        return -(t / a**2) * (d1 - d2) + 1 / a
+        return -(t / a ** 2) * (d1 - d2) + 1 / a
 
     def reactivity(self, t):
         r"""Equation (12)
@@ -467,7 +480,7 @@ class HaleBoschReactivityCalc():
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t**3))
+        root_term = np.sqrt(ξ / (mrc2 * t ** 3))
         exp_term = np.exp(-3 * ξ)
         return c1 * θ * root_term * exp_term
 
@@ -488,12 +501,12 @@ class HaleBoschReactivityCalc():
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t**3))
+        root_term = np.sqrt(ξ / (mrc2 * t ** 3))
         exp_term = np.exp(-3 * ξ)
         dθ_dt = self.dtheta(t)
         dξ_dθ = self.dxi_dtheta(θ)
-        droot_dξ = 1 / (2 * t**(3 / 2) * np.sqrt(mrc2 * ξ))
-        droot_dt = -(3 / 2) * np.sqrt(ξ / mrc2) * t**(-5 / 2)
+        droot_dξ = 1 / (2 * t ** (3 / 2) * np.sqrt(mrc2 * ξ))
+        droot_dt = -(3 / 2) * np.sqrt(ξ / mrc2) * t ** (-5 / 2)
         dexp_dξ = -3 * exp_term
 
         term1 = c1 * dθ_dt * root_term * exp_term
@@ -503,15 +516,15 @@ class HaleBoschReactivityCalc():
 
 
 if __name__ == "__main__":
-    hb = HaleBoschReactivity('D(d,p)T')
+    hb = HaleBoschReactivity("D(d,p)T")
     print(hb.canonical_reaction_name())
     print(hb.reactivity(0.5))
-    #import numpy as np
-    #DT_NAME = 'T(d,n)⁴He'
-    #DHE3_NAME = '³He(d,p)⁴He'
-    #DDT_NAME = 'D(d,p)T'
-    #import cProfile
-    #hb = HaleBoschCrossSection(DT_NAME)
-    #e = np.logspace(1, 9, 800000)
-    #cProfile.run('hb.cross_section(e)')
 
+    # import numpy as np
+    # DT_NAME = 'T(d,n)⁴He'
+    # DHE3_NAME = '³He(d,p)⁴He'
+    # DDT_NAME = 'D(d,p)T'
+    # import cProfile
+    # hb = HaleBoschCrossSection(DT_NAME)
+    # e = np.logspace(1, 9, 800000)
+    # cProfile.run('hb.cross_section(e)')

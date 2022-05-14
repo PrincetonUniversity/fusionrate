@@ -26,42 +26,42 @@ e = np.logspace(-1, np.log10(550), 100)
 e2 = np.logspace(np.log10(550), 8, 100)
 
 fig, ax = plt.subplots()
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xscale("log")
+ax.set_yscale("log")
 ax.grid()
 ax.set_xlim([1e2, 1e8])
 ax.set_ylim([1e-25, 1e1])
-ax.set_xlabel('COM energy/eV')
-ax.set_ylabel('Cross section')
+ax.set_xlabel("COM energy/eV")
+ax.set_ylabel("Cross section")
 
 # Hale-Bosch data
-cs = HaleBoschCrossSection('DT')
+cs = HaleBoschCrossSection("DT")
 x_hb = e * keV_TO_eV
 y_hb = cs.cross_section(e) * millibarns_TO_barns
 
-ax.plot(x_hb, y_hb, label='Hale-Bosch')
+ax.plot(x_hb, y_hb, label="Hale-Bosch")
 
 # Extension beyond the indicated safe range
 x_hb = e2 * keV_TO_eV
 y_hb = cs.cross_section(e2) * millibarns_TO_barns
-ax.plot(x_hb, y_hb, color='tab:blue', ls='dashed')
+ax.plot(x_hb, y_hb, color="tab:blue", ls="dashed")
 
 # ENDF data
-endf_data = load_data_file('cross_section_dt.csv')
+endf_data = load_data_file("cross_section_dt.csv")
 x_endf, y_endf = endf_data
 
-ax.plot(x_endf * beam_target_to_com, y_endf, label='ENDF')
+ax.plot(x_endf * beam_target_to_com, y_endf, label="ENDF")
 ax.legend()
 plt.show()
 
 fig, ax = plt.subplots()
-ax.set_xscale('log')
-ax.set_yscale('log')
-#ax.set_yscale('linear')
+ax.set_xscale("log")
+ax.set_yscale("log")
+# ax.set_yscale('linear')
 ax.set_xlim([1e2, 1e8])
 ax.set_ylim([0.5, 1.1])
-ax.set_xlabel('COM energy/eV')
-ax.set_ylabel('Relative cross section: Hale-Bosch/ENDF')
+ax.set_xlabel("COM energy/eV")
+ax.set_ylabel("Relative cross section: Hale-Bosch/ENDF")
 
 x_converted = x_endf * beam_target_to_com
 x_converted_keV = x_converted / 1000
@@ -72,10 +72,12 @@ y_hb_barns = y_hb_millibarns / 1000
 valid = x_endf < 550e3
 invalid = x_endf > 550e3
 ax.plot(x_endf[valid], y_hb_barns[valid] / y_endf[valid])
-ax.plot(x_endf[invalid],
-         y_hb_barns[invalid] / y_endf[invalid],
-         ls='dashed',
-         color='tab:blue')
+ax.plot(
+    x_endf[invalid],
+    y_hb_barns[invalid] / y_endf[invalid],
+    ls="dashed",
+    color="tab:blue",
+)
 
 plt.tight_layout()
 plt.show()
