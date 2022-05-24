@@ -47,7 +47,7 @@ y_hb = cs.cross_section(e2) * millibarns_TO_barns
 ax.plot(x_hb, y_hb, color="tab:blue", ls="dashed")
 
 # ENDF data
-endf_data = load_data_file("cross_section_dt.csv")
+endf_data = load_data_file("cross_section_t(d,n)a.csv")
 x_endf, y_endf = endf_data
 
 ax.plot(x_endf * beam_target_to_com, y_endf, label="ENDF")
