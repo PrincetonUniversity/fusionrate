@@ -51,33 +51,40 @@ class LogLogExtrapolation:
 
 
 class LogLogReinterpolation:
-    r"""Interpolate and extrapolate in log-log space
+    r"""Re-sampled LogLogExtrapolation
 
-    with a straight-line end in log-log space
+    This creates an interpolation function with a consistent spacing (in log-x
+    space), which allows using the np.interp function. The latter is useful
+    because it can be 'jit-compiled' using numba.
     """
     SMALL = 1e-50
     LOWBOUND = 10
     HIGHBOUND = 1e11
     NUM_REMESH = 6000
-    REMESHED_LOGX = np.linspace(
-        np.log(LOWBOUND), np.log(HIGHBOUND), NUM_REMESH
-    )
 
-    def __init__(self, x, y, linear_extension=True):
+    def __init__(self, x, y, linear_extension=True, num_remesh=None):
         r"""
         x: array_like
         y: array_like
         """
+        if num_remesh is not None:
+            self.NUM_REMESH = num_remesh
+        self._create_remeshed_log_x()
+
         lle = LogLogExtrapolation(x, y, linear_extension)
         self.remeshed_logy = lle.interpolator(self.REMESHED_LOGX)
+
+    def _create_remeshed_log_x(self):
+        self.REMESHED_LOGX = np.linspace(
+            np.log(self.LOWBOUND), np.log(self.HIGHBOUND), self.NUM_REMESH
+        )
 
     def __call__(self, newx):
         r"""Generate new values
         newx: array_like
         """
         log_new = np.log(newx)
-        log_newy = np.interp(log_new, self.REMESHED_LOGX, self.remeshed_logy,
-                right=self.SMALL)
+        log_newy = np.interp(log_new, self.REMESHED_LOGX, self.remeshed_logy)
         return np.exp(log_newy)
 
     def make_jitfunction(self):
@@ -96,7 +103,6 @@ class LogLogReinterpolation:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    import cProfile
 
     data_name = "cross_section_t(d,n)a.csv"
     x, y = load_data_file(data_name)
