@@ -19,15 +19,29 @@ class HaleBoschCrossSection:
     COEFFICIENTS = {
         DT_NAME: {
             "Bg": 34.3827,
-            "a": [6.927e4, 7.454e8, 2.050e6, 5.2002e4, 0.0],
-            "b": [6.38e1, -9.95e-1, 6.981e-5, 1.728e-4],
-            "range": [0.5, 550],
+            "a": [
+                [6.927e4, 7.454e8, 2.050e6, 5.2002e4, 0.0],
+                [-1.4714e6, 0.0, 0.0, 0.0, 0.0],
+            ],
+            "b": [
+                [6.38e1, -9.95e-1, 6.981e-5, 1.728e-4],
+                [-8.4127e-3, 4.7983e-6, -1.0748e-9, 8.5184e-14],
+            ],
+            "range": [[0.5, 550], [550, 4700]],
+            "transition": 530,
         },
         DHE3_NAME: {
             "Bg": 68.7508,
-            "a": [5.7501e6, 2.5226e3, 4.5566e1, 0, 0],
-            "b": [-3.1995e-3, -8.5530e-6, 5.9014e-8, 0],
-            "range": [0.3, 900],
+            "a": [
+                [5.7501e6, 2.5226e3, 4.5566e1, 0, 0],
+                [-8.3993e5, 0.0, 0.0, 0.0, 0.0],
+            ],
+            "b": [
+                [-3.1995e-3, -8.5530e-6, 5.9014e-8, 0],
+                [-2.6830e-3, 1.1633e-6, -2.1332e-10, 1.425e-14],
+            ],
+            "range": [[0.3, 900], [900, 4800]],
+            "transition": 900,
         },
         DDT_NAME: {
             "Bg": 31.3970,
@@ -43,13 +57,28 @@ class HaleBoschCrossSection:
         },
     }
 
-    def __init__(self, raw_reaction_name):
+    def __init__(self, raw_reaction_name, energy_range="full"):
         self.reaction_name = hale_bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         a = coeffs["a"]
         b = coeffs["b"]
-        self.calculator = HaleBoschCrossSectionCalc(Bg, a, b)
+        has_multiple_ranges = type(a[0]) == list
+        if not has_multiple_ranges:
+            self.calculator = HaleBoschCrossSectionCalc(Bg, a, b)
+        elif has_multiple_ranges:
+            if energy_range == "full":
+                self.calculator = HaleBoschHybridCrossSectionCalc(
+                    Bg, a, b, coeffs["transition"]
+                )
+            elif energy_range == "lower":
+                self.calculator = HaleBoschCrossSectionCalc(Bg, a[0], b[0])
+            elif energy_range == "upper":
+                self.calculator = HaleBoschCrossSectionCalc(Bg, a[1], b[1])
+            else:
+                print(
+                    f"Unknown energy range {energy_range}; choices are 'full', 'upper', and 'lower'."
+                )
 
     @classmethod
     def provides_reactions(cls):
@@ -90,7 +119,10 @@ class HaleBoschCrossSection:
         return self.reaction_name
 
     def prescribed_range(self):
-        return self.COEFFICIENTS[self.reaction_name]["range"]
+        r = self.COEFFICIENTS[self.reaction_name]["range"]
+        if type(r[0]) == list:
+            r = [r[0][0], r[-1][-1]]
+        return r
 
 
 class HaleBoschReactivity:
@@ -197,6 +229,41 @@ class HaleBoschReactivity:
 
     def prescribed_range(self):
         return self.COEFFICIENTS[self.reaction_name]["range"]
+
+
+class HaleBoschHybridCrossSectionCalc:
+    r"""Separate fits for two energy ranges
+
+    References
+    ----------
+    ..[1] Bosch, H.-S.; Hale, G. M.
+          Improved Formulas for Fusion Cross-Sections and
+          Thermal Reactivities. Nuclear Fusion 1992, 32 (4).
+    """
+
+    def __init__(self, bg, a, b, transition):
+        self.lower_calc = HaleBoschCrossSectionCalc(bg, a[0], b[0])
+        self.upper_calc = HaleBoschCrossSectionCalc(bg, a[1], b[1])
+        self.transition_energy = transition
+
+    def cross_section(self, e):
+        r"""Equation (8)
+
+        Parameters
+        ----------
+        e : array_like
+            keV, c.o.m. energy
+
+        Returns
+        -------
+        σ: array_like
+           cm²
+        """
+        is_lower = e <= self.transition_energy
+        σ_lower = self.lower_calc.cross_section(e)
+        σ_upper = self.upper_calc.cross_section(e)
+        σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
+        return σ
 
 
 class HaleBoschCrossSectionCalc:
@@ -516,9 +583,18 @@ class HaleBoschReactivityCalc:
 
 
 if __name__ == "__main__":
-    hb = HaleBoschReactivity("D(d,p)T")
-    print(hb.canonical_reaction_name())
-    print(hb.reactivity(0.5))
+    import matplotlib.pyplot as plt
+
+    hb = HaleBoschCrossSection("T(d,n)4He", energy_range="lower")
+    e1 = np.logspace(1, np.log10(4700), 500)
+    sigma = hb.cross_section(e1)
+    plt.loglog(e1, sigma)
+
+    e1 = np.logspace(np.log10(530), np.log10(4700), 500)
+    hb = HaleBoschCrossSection("T(d,n)4He", energy_range="upper")
+    sigma = hb.cross_section(e1)
+    plt.loglog(e1, sigma)
+    plt.show()
 
     # import numpy as np
     # DT_NAME = 'T(d,n)⁴He'
