@@ -76,8 +76,8 @@ class HaleBoschCrossSection:
             elif energy_range == "upper":
                 self.calculator = HaleBoschCrossSectionCalc(Bg, a[1], b[1])
             else:
-                print(
-                    f"Unknown energy range {energy_range}; choices are 'full', 'upper', and 'lower'."
+                raise ValueError(
+                    f"Unknown energy range '{energy_range}'; choices are 'full', 'upper', and 'lower'."
                 )
 
     @classmethod
@@ -594,6 +594,7 @@ if __name__ == "__main__":
     hb = HaleBoschCrossSection("T(d,n)4He", energy_range="upper")
     sigma = hb.cross_section(e1)
     plt.loglog(e1, sigma)
+
     plt.show()
 
     # import numpy as np
