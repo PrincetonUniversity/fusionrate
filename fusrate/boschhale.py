@@ -65,6 +65,10 @@ class BoschHaleCrossSection:
         b = coeffs["b"]
         has_multiple_ranges = type(a[0]) == list
         if not has_multiple_ranges:
+            if energy_range != "full":
+                raise ValueError("This reaction only has one energy range. "
+                        "Keyword energy_range should be set to 'full' or left "
+                        "unspecified.")
             self.calculator = BoschHaleCrossSectionCalc(Bg, a, b)
         elif has_multiple_ranges:
             if energy_range == "full":
@@ -119,7 +123,14 @@ class BoschHaleCrossSection:
         return self.reaction_name
 
     def prescribed_range(self):
+        r"""Energy range in keV over which the reaction is valid
+
+        Returns
+        -------
+        a two-element list [low, high]
+        """
         r = self.COEFFICIENTS[self.reaction_name]["range"]
+        # for the two reactions with 'upper' and 'lower' ranges
         if type(r[0]) == list:
             r = [r[0][0], r[-1][-1]]
         return r
@@ -585,23 +596,10 @@ class BoschHaleReactivityCalc:
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    hb = BoschHaleCrossSection("T(d,n)4He", energy_range="lower")
-    e1 = np.logspace(1, np.log10(4700), 500)
-    sigma = hb.cross_section(e1)
-    plt.loglog(e1, sigma)
-
-    e1 = np.logspace(np.log10(530), np.log10(4700), 500)
-    hb = BoschHaleCrossSection("T(d,n)4He", energy_range="upper")
-    sigma = hb.cross_section(e1)
+    bh = BoschHaleCrossSection("T(d,n)4He")
+    energy_range = bh.prescribed_range()
+    e1 = np.logspace(*np.log10(energy_range), 500)
+    sigma = bh.cross_section(e1)
     plt.loglog(e1, sigma)
 
     plt.show()
-
-    # import numpy as np
-    # DT_NAME = 'T(d,n)⁴He'
-    # DHE3_NAME = '³He(d,p)⁴He'
-    # DDT_NAME = 'D(d,p)T'
-    # import cProfile
-    # hb = BoschHaleCrossSection(DT_NAME)
-    # e = np.logspace(1, 9, 800000)
-    # cProfile.run('hb.cross_section(e)')
