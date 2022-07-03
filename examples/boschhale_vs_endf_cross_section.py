@@ -7,8 +7,8 @@
 # transformation.
 # The second plot compares the two (since they are quite close.)
 # The dashed line represents the region outside the stated validity of the
-# Hale-Bosch formula.
-from fusrate.halebosch import HaleBoschCrossSection
+# Bosch-Hale formula.
+from fusrate.boschhale import BoschHaleCrossSection
 from fusrate.load_data import load_data_file
 
 import matplotlib.pyplot as plt
@@ -23,7 +23,7 @@ beam_target_to_com = m_trit / (m_deu + m_trit)
 
 # center of mass energies
 reaction = "D+T"
-cs = HaleBoschCrossSection(reaction)
+cs = BoschHaleCrossSection(reaction)
 upper_limit = cs.prescribed_range()[-1]
 
 e = np.logspace(-1, np.log10(upper_limit), 500)

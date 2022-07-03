@@ -27,7 +27,7 @@ def name_resolver(reaction_raw_name):
     canonical_name = None
     if canonical_name is None:
         try:
-            canonical_name = hale_bosch_name_resolver(reaction_raw_name)
+            canonical_name = bosch_hale_name_resolver(reaction_raw_name)
         except ValueError:
             pass
 
@@ -97,7 +97,7 @@ def proton_boron_name_resolver(reaction_raw_name):
     )
 
 
-def hale_bosch_name_resolver(reaction_raw_name):
+def bosch_hale_name_resolver(reaction_raw_name):
     DT_NAMES = [DT_NAME, "DT", "D+T", "D+T→n+α", "D+T→α+n"]
 
     DHE3_NAMES = [
@@ -149,7 +149,7 @@ def hale_bosch_name_resolver(reaction_raw_name):
 
     raise ValueError(
         f"""
-        In the hale_bosch_name_resolver, {reaction_raw_name} could not be
+        In the bosch_hale_name_resolver, {reaction_raw_name} could not be
         resolved. Possible options are {DT_NAMES}, {DHE3_NAMES}, {DDT_NAMES},
         {DDHE3_NAMES}."""
     )

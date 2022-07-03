@@ -1,4 +1,4 @@
-from fusrate.halebosch import HaleBoschReactivity
+from fusrate.boschhale import BoschHaleReactivity
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,7 +16,7 @@ meters_cubed_in_cm_cubed = 1e6
 
 
 def plot_sv(reaction):
-    sv = HaleBoschReactivity(reaction)
+    sv = BoschHaleReactivity(reaction)
     t_range = sv.prescribed_range()
 
     t = np.logspace(*np.log10(t_range), 100)

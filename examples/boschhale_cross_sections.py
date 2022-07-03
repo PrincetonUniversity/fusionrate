@@ -1,4 +1,4 @@
-from fusrate.halebosch import HaleBoschCrossSection
+from fusrate.boschhale import BoschHaleCrossSection
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +14,7 @@ fig, ax = plt.subplots(1, 2)
 
 
 def plot_cs(reaction):
-    cs = HaleBoschCrossSection(reaction)
+    cs = BoschHaleCrossSection(reaction)
     e_range = cs.prescribed_range()
 
     e = np.logspace(*np.log10(e_range), 100)

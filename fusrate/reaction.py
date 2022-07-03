@@ -1,12 +1,12 @@
-from halebosch import HaleBoschCrossSection
-from halebosch import HaleBoschReactivity
+from boschhale import BoschHaleCrossSection
+from boschhale import BoschHaleReactivity
 
 # canonical reaction names
 
 
 class Reaction:
     def __init__(self, name):
-        # try hb name resolver. If that fails,
+        # try bh name resolver. If that fails,
         # try pB11 name resolver. If that fails, try
         # # try pLi6
         self.name = name
