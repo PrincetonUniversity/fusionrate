@@ -24,6 +24,29 @@ ALL_REACTIONS = [
 
 
 def name_resolver(reaction_raw_name):
+    r"""Recognize a canonical fusion reaction
+
+    The name resolver aims to recognize the common fusion reactions
+    from a string, in a reasonable number of unambiguous formats.
+
+    Parameters
+    ----------
+    reaction_raw_name: string
+        The name resolver aims to recognize the common fusion reactions
+        from a string, in a reasonable number of unambiguous formats.
+
+    Examples
+    --------
+    name_resolver("DT")      --> T(d,n)⁴He
+    name_resolver("D+T→α+n") --> T(d,n)⁴He
+
+    name_resolver("D+3He")   --> ³He(d,p)T
+
+    Notes
+    -----
+    This could be implemented in a better way by parsing the
+    reactants and products rather than doing a set of string replacements.
+    """
     canonical_name = None
     if canonical_name is None:
         try:

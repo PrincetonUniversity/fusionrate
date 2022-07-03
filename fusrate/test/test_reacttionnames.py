@@ -26,6 +26,12 @@ class TestBoschHaleReactionNameResolver(unittest.TestCase):
     def test_DT_5(self):
         assert DT_NAME == rn.bosch_hale_name_resolver("D+T→α+n")
 
+    def test_DT_6(self):
+        assert DT_NAME == rn.bosch_hale_name_resolver("D+T→a+n")
+
+    def test_DT_7(self):
+        assert DT_NAME == rn.bosch_hale_name_resolver("D+T→n+a")
+
     def test_DH3_0(self):
         assert DHE3_NAME == rn.bosch_hale_name_resolver(DHE3_NAME)
 
