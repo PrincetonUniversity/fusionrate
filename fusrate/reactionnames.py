@@ -23,6 +23,72 @@ ALL_REACTIONS = [
 ]
 
 
+def target_species(s):
+    r"""Name of reaction target species
+    Parameters
+    ----------
+    s: string
+        canonical reaction name
+
+    Returns
+    -------
+    Canonical non-charge-specific species form
+
+    Examples
+    --------
+    >>> reaction_target_species("T(d,n)⁴He")
+    'T'
+
+    >>> reaction_target_species("³He(t,pn)⁴He")
+    '³He'
+    """
+    return s.split("(")[0]
+
+
+def particle_form_to_target_form(s):
+    r"""For supported species only
+
+    These species appear in the canonical reaction names.
+    Here we convert to 'uppercase' species forms.
+
+    Parameters
+    ----------
+    s : {'p', 'd', 't', 'h'}
+        lowercase species form
+
+    Returns
+    -------
+    Canonical non-charge-specific species form
+    """
+    d = {"p": "H", "d": "D", "t": "T", "h": "³He"}
+    return d[s]
+
+
+def reaction_beam_species(s):
+    r"""Name of reaction beam species
+
+    Parameters
+    ----------
+    s: string
+        canonical reaction name
+
+    Returns
+    -------
+    Canonical non-charge-specific species form
+
+    Examples
+    --------
+    >>> reaction_beam_species("T(d,n)⁴He")
+    'D'
+
+    >>> reaction_beam_species("³He(t,pn)⁴He")
+    'T'
+    """
+    reactants = s.split(",")[0]
+    beam_sp = reactants.split("(")[1]
+    return particle_form_to_target_form(beam_sp)
+
+
 def name_resolver(reaction_raw_name):
     r"""Recognize a canonical fusion reaction
 
@@ -37,10 +103,14 @@ def name_resolver(reaction_raw_name):
 
     Examples
     --------
-    name_resolver("DT")      --> T(d,n)⁴He
-    name_resolver("D+T→α+n") --> T(d,n)⁴He
+    >>> name_resolver("DT")
+    'T(d,n)⁴He'
 
-    name_resolver("D+3He")   --> ³He(d,p)T
+    >>> name_resolver("D+T→α+n")
+    'T(d,n)⁴He'
+
+    >>> name_resolver("D+3He")
+    '³He(d,p)T'
 
     Notes
     -----

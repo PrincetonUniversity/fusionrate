@@ -4,8 +4,60 @@ from fusrate.reactionnames import DHE3_NAME
 from fusrate.reactionnames import DDT_NAME
 from fusrate.reactionnames import DDHE3_NAME
 
+from fusrate.reactionnames import PLI6_NAME
+from fusrate.reactionnames import PB11_NAME
+
 import unittest
 
+class TestReactionNameParsing(unittest.TestCase):
+    PROT = 'H'
+    DEU = 'D'
+    TRIT = 'T'
+    HE3 = '³He'
+    LI6 = '⁶Li'
+    B11 = '¹¹B'
+
+    def test_t0(self):
+        assert self.TRIT == rn.reaction_target_species(DT_NAME)
+
+    def test_b0(self):
+        assert self.DEU == rn.reaction_beam_species(DT_NAME)
+
+    def test_t1(self):
+        assert self.HE3 == rn.reaction_target_species(DHE3_NAME)
+
+    def test_b1(self):
+        assert self.DEU == rn.reaction_beam_species(DHE3_NAME)
+
+    def test_t2(self):
+        assert self.DEU == rn.reaction_target_species(DDT_NAME)
+
+    def test_b2(self):
+        assert self.DEU == rn.reaction_beam_species(DDT_NAME)
+
+    def test_t3(self):
+        assert self.DEU == rn.reaction_target_species(DDHE3_NAME)
+
+    def test_b3(self):
+        assert self.DEU == rn.reaction_beam_species(DDHE3_NAME)
+
+    def test_t4(self):
+        assert self.LI6 == rn.reaction_target_species(PLI6_NAME)
+
+    def test_b4(self):
+        assert self.PROT == rn.reaction_beam_species(PLI6_NAME)
+
+    def test_t5(self):
+        assert self.LI6 == rn.reaction_target_species(PLI6_NAME)
+
+    def test_b5(self):
+        assert self.PROT == rn.reaction_beam_species(PLI6_NAME)
+
+    def test_t6(self):
+        assert self.B11 == rn.reaction_target_species(PB11_NAME)
+
+    def test_b6(self):
+        assert self.PROT == rn.reaction_beam_species(PB11_NAME)
 
 class TestBoschHaleReactionNameResolver(unittest.TestCase):
     def test_DT_0(self):
