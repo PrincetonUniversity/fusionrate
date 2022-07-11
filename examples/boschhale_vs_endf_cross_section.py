@@ -10,6 +10,8 @@
 # Bosch-Hale formula.
 from fusrate.boschhale import BoschHaleCrossSection
 from fusrate.load_data import load_data_file
+from fusrate.ion_data import ion_mass
+import fusrate.reactionnames as rn
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,12 +19,13 @@ import numpy as np
 keV_TO_eV = 1000
 millibarns_TO_barns = 0.001
 
-m_deu = 2.01355321
-m_trit = 3.01550069
-beam_target_to_com = m_trit / (m_deu + m_trit)
+reaction = rn.name_resolver("D+T")
+beam, tar = rn.reactants(reaction)
+m_beam = ion_mass(beam)
+m_tar = ion_mass(tar)
+beam_target_to_com = m_tar / (m_beam + m_tar)
 
 # center of mass energies
-reaction = "D+T"
 cs = BoschHaleCrossSection(reaction)
 upper_limit = cs.prescribed_range()[-1]
 
