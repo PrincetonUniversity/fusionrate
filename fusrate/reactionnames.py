@@ -158,7 +158,7 @@ def name_resolver(reaction_raw_name):
         return canonical_name
     else:
         raise ValueError(
-            """
+            f"""
         The reaction name resolver could not determine the reaction
         {reaction_raw_name}. The best options are {ALL_REACTIONS}.
         """
