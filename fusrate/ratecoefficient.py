@@ -6,24 +6,44 @@ import numpy as np
 
 
 @numba.njit
-def v_th(T_keV, m_amu):
-    r"""Jitted (for compatibility) 1 keV thermal velocity"""
-    return np.sqrt(keV * T_keV / (m_amu * amu))
+def v_th(T, m):
+    r"""Thermal velocity
+
+    Parameters
+    ----------
+    T : array_like,
+        Temperature in keV
+    m : array_like,
+        mass in amu
+
+    Returns
+    -------
+    velocity in m/s
+    """
+    return np.sqrt(keV * T / (m * amu))
 
 
 @numba.njit
 def reduced_mass(m1, m2):
-    r"""Reduced mass"""
+    r"""For two interacting particles
+
+    Parameters
+    ----------
+    m1, m2 : float
+
+    Returns
+    -------
+    float
+    """
     μ = m1 * m2 / (m1 + m2)
     return μ
 
 
 def makef3d(σ, m1, m2):
     r"""Integrand-making function
+
     Does the integration in Z1 R2-Z2 space, not Z1 ρ2-θ2 space
-
     It's a bit more natural to express the maxwellian in this space
-
     Returns a function which can be used at any temperature
 
     Integration limits:
@@ -31,6 +51,16 @@ def makef3d(σ, m1, m2):
     R2: 0 to oo
     Z2: -oo to oo
 
+    Parameters
+    ----------
+    σ : function
+        Cross section function
+    m1, m2 : float
+        reactant masses in amu
+
+    Returns
+    -------
+    function f
     """
 
     μ = reduced_mass(m1, m2)
@@ -45,11 +75,21 @@ def makef3d(σ, m1, m2):
 
         return com_energy
 
-    def f(u_array, T1_keV, T2_keV):
-        u1z, u2r, u2z = u_array.T
+    def f(u_array, vth1, vth2):
+        r"""Reactivity integrand
 
-        vth1 = v_th(T1_keV, m1)
-        vth2 = v_th(T2_keV, m2)
+        Parameters
+        ----------
+        u_array : array_like
+            n x 3 array of velocities
+        vth1, vth2 : floats
+            Thermal velocities in m/s. Passed as fixed arguments.
+
+        Returns
+        -------
+        reactivity integrand
+        """
+        u1z, u2r, u2z = u_array.T
 
         maxwellians = np.exp(-np.square(u1z) - np.square(u2r) - np.square(u2z))
         com_e_keV = com_energy_keVU(u1z * vth1, u2r * vth2, u2z * vth2)
@@ -73,23 +113,37 @@ def makef3d(σ, m1, m2):
 class MaxwellianRateCoefficientCalculator:
     def __init__(self, rcore, σ):
         self.rcore = rcore
-        self.m_beam = rcore.m_beam
-        self.m_tar = rcore.m_tar
+        self.mA = rcore.m_beam
+        self.mB = rcore.m_tar
 
-        self.f = makef3d(σ, self.m_beam, self.m_tar)
+        self.f = makef3d(σ, self.mA, self.mB)
         h = 8
         self.xmin = np.array([0, 0, -h], np.float64)
         self.xmax = np.array([h, h, h], np.float64)
         self.reactivity = np.vectorize(self.reactivity, otypes=["float"])
 
-    def reactivity(self, T_keV):
+    def reactivity(self, T):
+        r"""
+        Parameters
+        ----------
+        T : array_like,
+            Temperatures in keV
+
+        Returns
+        -------
+        Rate coefficient
+        """
+
+        vth1 = v_th(T, self.mA)
+        vth2 = v_th(T, self.mB)
+
         val, err = cubature(
             self.f,
             3,
             1,
             self.xmin,
             self.xmax,
-            args=(T_keV, T_keV),
+            args=(vth1, vth2),
             vectorized=True,
             relerr=1e-05,
             maxEval=50000,
@@ -106,4 +160,4 @@ if __name__ == "__main__":
     cs = ENDFCrossSection(rc)
     mwrc = MaxwellianRateCoefficientCalculator(rc, cs.cross_section)
     my_t = 40
-    mwrc.reactivity(my_t)
+    print(mwrc.reactivity(my_t))
