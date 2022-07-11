@@ -171,10 +171,10 @@ if __name__ == "__main__":
     from fusrate.load_data import load_data_file
 
     endf = ENDFCrossSection("D+T")
-    newx = np.logspace(0, 3, 100)
-    plt.loglog(newx, endf.cross_section(newx))
-
     llr = ENDFCrossSection("D+T", interpolation='LogLogReinterpolation')
 
+    newx = np.logspace(0, 3, 100)
+
+    plt.loglog(newx, endf.cross_section(newx))
     plt.loglog(newx, llr.cross_section(newx))
     plt.show()
