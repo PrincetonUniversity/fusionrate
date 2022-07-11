@@ -18,46 +18,49 @@ class TestReactionNameParsing(unittest.TestCase):
     B11 = '¹¹B'
 
     def test_t0(self):
-        assert self.TRIT == rn.reaction_target_species(DT_NAME)
+        assert self.TRIT == rn.target_species(DT_NAME)
 
     def test_b0(self):
-        assert self.DEU == rn.reaction_beam_species(DT_NAME)
+        assert self.DEU == rn.beam_species(DT_NAME)
+
+    def test_r0(self):
+        assert self.DEU, self.TRIT == rn.reactants(DT_NAME)
 
     def test_t1(self):
-        assert self.HE3 == rn.reaction_target_species(DHE3_NAME)
+        assert self.HE3 == rn.target_species(DHE3_NAME)
 
     def test_b1(self):
-        assert self.DEU == rn.reaction_beam_species(DHE3_NAME)
+        assert self.DEU == rn.beam_species(DHE3_NAME)
 
     def test_t2(self):
-        assert self.DEU == rn.reaction_target_species(DDT_NAME)
+        assert self.DEU == rn.target_species(DDT_NAME)
 
     def test_b2(self):
-        assert self.DEU == rn.reaction_beam_species(DDT_NAME)
+        assert self.DEU == rn.beam_species(DDT_NAME)
 
     def test_t3(self):
-        assert self.DEU == rn.reaction_target_species(DDHE3_NAME)
+        assert self.DEU == rn.target_species(DDHE3_NAME)
 
     def test_b3(self):
-        assert self.DEU == rn.reaction_beam_species(DDHE3_NAME)
+        assert self.DEU == rn.beam_species(DDHE3_NAME)
 
     def test_t4(self):
-        assert self.LI6 == rn.reaction_target_species(PLI6_NAME)
+        assert self.LI6 == rn.target_species(PLI6_NAME)
 
     def test_b4(self):
-        assert self.PROT == rn.reaction_beam_species(PLI6_NAME)
+        assert self.PROT == rn.beam_species(PLI6_NAME)
 
     def test_t5(self):
-        assert self.LI6 == rn.reaction_target_species(PLI6_NAME)
+        assert self.LI6 == rn.target_species(PLI6_NAME)
 
     def test_b5(self):
-        assert self.PROT == rn.reaction_beam_species(PLI6_NAME)
+        assert self.PROT == rn.beam_species(PLI6_NAME)
 
     def test_t6(self):
-        assert self.B11 == rn.reaction_target_species(PB11_NAME)
+        assert self.B11 == rn.target_species(PB11_NAME)
 
     def test_b6(self):
-        assert self.PROT == rn.reaction_beam_species(PB11_NAME)
+        assert self.PROT == rn.beam_species(PB11_NAME)
 
 class TestBoschHaleReactionNameResolver(unittest.TestCase):
     def test_DT_0(self):

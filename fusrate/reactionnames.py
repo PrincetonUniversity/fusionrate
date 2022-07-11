@@ -64,7 +64,7 @@ def particle_form_to_target_form(s):
     return d[s]
 
 
-def reaction_beam_species(s):
+def beam_species(s):
     r"""Name of reaction beam species
 
     Parameters
@@ -87,6 +87,30 @@ def reaction_beam_species(s):
     reactants = s.split(",")[0]
     beam_sp = reactants.split("(")[1]
     return particle_form_to_target_form(beam_sp)
+
+def reactants(s):
+    r"""Names of beam, target species
+
+    Parameters
+    ----------
+    s: string
+        canonical reaction name
+
+    Returns
+    -------
+    Canonical non-charge-specific species form
+
+    Examples
+    --------
+    >>> reactants("T(d,n)⁴He")
+    'D', 'T'
+
+    >>> reactants("³He(t,pn)⁴He")
+    'T', '³He'
+    """
+    beam = beam_species(s)
+    target = target_species(s)
+    return beam, target
 
 
 def name_resolver(reaction_raw_name):
