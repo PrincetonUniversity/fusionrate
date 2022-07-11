@@ -1,5 +1,9 @@
-from fusrate.load_data import load_data_file
+import fusrate.reactionnames as rn
+from fusrate.load_data import cross_section_data
+from fusrate.ion_data import ion_mass
+
 from scipy.interpolate import InterpolatedUnivariateSpline
+
 import numpy as np
 
 import numba
@@ -8,7 +12,7 @@ import numba
 class LogLogExtrapolation:
     r"""Interpolate and extrapolate in log-log space
 
-    with a straight-line end in log-log space
+    with a straight-line right end in log-log space
     """
     SMALL = 1e-50  # to prevent errors with log of 0
 
@@ -43,7 +47,13 @@ class LogLogExtrapolation:
 
     def __call__(self, newx):
         r"""Generate new values
+
+        Parameters
+        ----------
         newx: array_like
+            Energies in eV.
+            Whether this is beam-target energy or c.o.m. energy
+            is up to the data.
         """
         log_new = np.log(newx + self.SMALL)
         log_newy = self.interpolator(log_new)
@@ -57,9 +67,9 @@ class LogLogReinterpolation:
     space), which allows using the np.interp function. The latter is useful
     because it can be 'jit-compiled' using numba.
     """
-    SMALL = 1e-50
-    LOWBOUND = 10
-    HIGHBOUND = 1e11
+    SMALL = 1e-50  # barns
+    LOWBOUND = 0.010  # keV
+    HIGHBOUND = 4e4  # keV
     NUM_REMESH = 6000
 
     def __init__(self, x, y, linear_extension=True, num_remesh=None):
@@ -69,27 +79,35 @@ class LogLogReinterpolation:
         """
         if num_remesh is not None:
             self.NUM_REMESH = num_remesh
-        self._create_remeshed_log_x()
+        self.remeshed_logx = self._remeshed_log_x()
 
         lle = LogLogExtrapolation(x, y, linear_extension)
-        self.remeshed_logy = lle.interpolator(self.REMESHED_LOGX)
+        self.remeshed_logy = lle.interpolator(self.remeshed_logx)
 
-    def _create_remeshed_log_x(self):
-        self.REMESHED_LOGX = np.linspace(
+    def _remeshed_log_x(self):
+        return np.linspace(
             np.log(self.LOWBOUND), np.log(self.HIGHBOUND), self.NUM_REMESH
         )
 
     def __call__(self, newx):
         r"""Generate new values
-        newx: array_like
+        newx: array_like,
+            energies in eV.
+            Whether this is beam-target energy or c.o.m. energy
+            is up to the data.
         """
         log_new = np.log(newx)
-        log_newy = np.interp(log_new, self.REMESHED_LOGX, self.remeshed_logy)
+        log_newy = np.interp(
+            log_new,
+            self.remeshed_logx,
+            self.remeshed_logy,
+            right=np.log10(self.SMALL),
+        )
         return np.exp(log_newy)
 
     def make_jitfunction(self):
         small = self.SMALL
-        remesh_logx = self.REMESHED_LOGX
+        remesh_logx = self.remeshed_logx
         remesh_logy = self.remeshed_logy
 
         @numba.njit(cache=True, fastmath=True)
@@ -101,19 +119,62 @@ class LogLogReinterpolation:
         return logloginterp
 
 
+class ENDFCrossSection:
+
+    def __init__(self, s, interpolation="LogLogExtrapolation"):
+        r"""
+        s: reaction name string
+        """
+        name = rn.name_resolver(s)
+        self.canonical_reaction_name = name
+
+        self.beam, self.target = rn.reactants(name)
+
+        self.m_beam = ion_mass(self.beam)
+        self.m_tar = ion_mass(self.target)
+
+        self.bt_to_com = self.m_tar / (self.m_beam + self.m_tar)
+
+        x_raw, y = cross_section_data(name)
+
+        # Change from lab frame to COM frame
+        # and from eV to keV (to match typical scales and Bosch-Hale)
+        x = x_raw * self.bt_to_com / 1e3
+
+        if interpolation == "LogLogExtrapolation":
+            self.interp = LogLogExtrapolation(x, y, linear_extension=True)
+        elif interpolation == "LogLogReinterpolation":
+            interp_source = LogLogReinterpolation(x, y, linear_extension=True)
+            self.interp = interp_source.make_jitfunction()
+        else:
+            raise ValueError(f"Unknown interpolation type {interpolation}."
+                "Allowed values are LogLogExtrapolation and"
+                "LogLogReinterpolation.")
+
+
+    def cross_section(self, e):
+        r"""
+        Parameters
+        ----------
+        e : array_like,
+          energies in keV
+
+        Returns
+        -------
+        Cross sections in b
+        """
+        return self.interp(e)
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from fusrate.load_data import load_data_file
 
-    data_name = "cross_section_t(d,n)a.csv"
-    x, y = load_data_file(data_name)
-    lle = LogLogExtrapolation(x, y, linear_extension=True)
-    llr = LogLogReinterpolation(x, y, linear_extension=True)
+    endf = ENDFCrossSection("D+T")
+    newx = np.logspace(0, 3, 100)
+    plt.loglog(newx, endf.cross_section(newx))
 
-    llr_jit = llr.make_jitfunction()
+    llr = ENDFCrossSection("D+T", interpolation='LogLogReinterpolation')
 
-    newx = np.logspace(3, 6, 100)
-
-    plt.loglog(newx, lle(newx))
-    plt.loglog(newx, llr(newx))
-    plt.loglog(newx, llr_jit(newx))
+    plt.loglog(newx, llr.cross_section(newx))
     plt.show()
