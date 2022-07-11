@@ -121,20 +121,24 @@ class LogLogReinterpolation:
 
 class ENDFCrossSection:
 
-    def __init__(self, s, interpolation="LogLogExtrapolation"):
+    def __init__(self, r, interpolation="LogLogExtrapolation"):
         r"""
         s: reaction name string
         """
-        name = rn.name_resolver(s)
+        if type(r) == str:
+            name = rn.name_resolver(r)
+
+            beam, target = rn.reactants(name)
+
+            m_beam = ion_mass(beam)
+            m_tar = ion_mass(target)
+
+            self.bt_to_com = m_tar / (m_beam + m_tar)
+        else:
+            name = r.name
+            self.bt_to_com = r.bt_to_com
+
         self.canonical_reaction_name = name
-
-        self.beam, self.target = rn.reactants(name)
-
-        self.m_beam = ion_mass(self.beam)
-        self.m_tar = ion_mass(self.target)
-
-        self.bt_to_com = self.m_tar / (self.m_beam + self.m_tar)
-
         x_raw, y = cross_section_data(name)
 
         # Change from lab frame to COM frame
