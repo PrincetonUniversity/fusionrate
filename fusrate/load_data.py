@@ -9,7 +9,6 @@ DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
 CROSS_SECTION_FILETYPE = ".csv"
 
-
 def locate_data_file(dname):
     if resources.is_resource(DEFAULT_DATA_DIR, dname):
         with resources.path(DEFAULT_DATA_DIR, dname) as f:
@@ -38,4 +37,4 @@ def cross_section_data(canonical_reaction_name):
 if __name__ == "__main__":
     from reactionnames import DT_NAME
 
-    print(cross_section_data(DDHE3_NAME).T)
+    print(cross_section_data(DT_NAME).T)
