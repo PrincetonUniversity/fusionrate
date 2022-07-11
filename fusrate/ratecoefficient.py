@@ -1,8 +1,7 @@
 from fusrate.constants import amu, keV
+
 from cubature import cubature
-
 import numba
-
 import numpy as np
 
 
@@ -81,7 +80,7 @@ class MaxwellianRateCoefficientCalculator:
         h = 8
         self.xmin = np.array([0, 0, -h], np.float64)
         self.xmax = np.array([h, h, h], np.float64)
-        self.reactivity = np.vectorize(self.reactivity, otypes=['float'])
+        self.reactivity = np.vectorize(self.reactivity, otypes=["float"])
 
     def reactivity(self, T_keV):
         val, err = cubature(
