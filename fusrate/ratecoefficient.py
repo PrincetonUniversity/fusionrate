@@ -1,4 +1,5 @@
-from fusrate.constants import amu, keV
+from fusrate.constants import atomic_mass_unit as amu
+from fusrate.constants import kiloelectronvolt as keV
 
 from cubature import cubature
 import numba
@@ -37,6 +38,10 @@ def reduced_mass(m1, m2):
     """
     μ = m1 * m2 / (m1 + m2)
     return μ
+
+
+def makef_bimaxwellian(σ, m1, m2):
+    pass
 
 
 def makef_simplemaxwellian(σ, m1, m2):
@@ -133,6 +138,10 @@ def makef_simplemaxwellian(σ, m1, m2):
 
     return f, x_limits
 
+class RateCoefficientIntegratorBiMaxwellian:
+    r"""Seperate perp and parallel temperatures
+    """
+    pass
 
 class RateCoefficientIntegratorMaxwellian:
     r"""Isotropic, single ion temperature, no drifts
