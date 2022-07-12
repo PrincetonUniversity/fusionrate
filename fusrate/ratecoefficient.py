@@ -5,7 +5,7 @@ import numba
 import numpy as np
 
 
-@numba.njit
+@numba.njit(cache=True)
 def v_th(T, m):
     r"""Thermal velocity
 
@@ -23,7 +23,7 @@ def v_th(T, m):
     return np.sqrt(keV * T / (m * amu))
 
 
-@numba.njit
+@numba.njit(cache=True)
 def reduced_mass(m1, m2):
     r"""For two interacting particles
 
@@ -39,22 +39,23 @@ def reduced_mass(m1, m2):
     return μ
 
 
-def makef3d(σ, m1, m2):
+def makef_simplemaxwellian(σ, m1, m2):
     r"""Integrand-making function
 
-    Does the integration in Z1 R2-Z2 space, not Z1 ρ2-θ2 space
-    It's a bit more natural to express the maxwellian in this space
-    Returns a function which can be used at any temperature
+    Does the integration in Z1 R2-Z2 space.
+    It's a bit more natural to express the maxwellian in this space and there
+    is no direct trigometry.
 
     Integration limits:
-    Z1: 0 to oo
-    R2: 0 to oo
-    Z2: -oo to oo
+    Z1: 0 to ∞
+    R2: 0 to ∞
+    Z2: -∞ to ∞
 
     Parameters
     ----------
     σ : function
-        Cross section function
+        Cross section function, which takes as a single argument energy in keV
+        and returns the cross section in millibarns
     m1, m2 : float
         reactant masses in amu
 
@@ -66,8 +67,14 @@ def makef3d(σ, m1, m2):
     μ = reduced_mass(m1, m2)
     leading_factor = 2 ** (7 / 2) / np.pi
 
-    @numba.njit
-    def com_energy_keVU(v1z, v2r, v2z):
+    @numba.njit(cache=True)
+    def com_energy_keV(v1z, v2r, v2z):
+        r"""Center of mass energy
+
+        Returns
+        -------
+        Energy in keV
+        """
         energy_part = (
             np.square(v1z) + v2r ** 2 - 2 * v1z * v2z + np.square(v2z)
         )
@@ -97,8 +104,8 @@ def makef3d(σ, m1, m2):
         u1z, u2r, u2z = u_array.T
 
         maxwellians = np.exp(-np.square(u1z) - np.square(u2r) - np.square(u2z))
-        com_e_keV = com_energy_keVU(u1z * vth1, u2r * vth2, u2z * vth2)
-        cross_section = σ(com_e_keV)
+        com_e = com_energy_keV(u1z * vth1, u2r * vth2, u2z * vth2)
+        cross_section = σ(com_e)
         jacobian = np.square(u1z) * u2r
         relative_v = np.sqrt(
             np.square(vth2 * u2r) + np.square(vth1 * u1z - vth2 * u2z)
@@ -112,32 +119,39 @@ def makef3d(σ, m1, m2):
             * maxwellians
         )
 
-    return f
+    def x_limits(h):
+        r"""Limits function corresponding to the integration strategy
+
+        Parameters
+        ----------
+        h : number
+            multiples of the thermal velocity to integrate out to
+        """
+        xmin = np.array([0, 0, -h], np.float64)
+        xmax = np.array([h, h, h], np.float64)
+        return xmin, xmax
+
+    return f, x_limits
 
 
-class MaxwellianRateCoefficientCalculator:
-    def __init__(self, rcore, σ, relerr=1e-5, maxeval=1e5):
+class RateCoefficientIntegratorMaxwellian:
+    r"""Isotropic, single ion temperature, no drifts
+    """
+    def __init__(self, rcore, σ, relerr=1e-5, maxeval=1e5, h=8):
         self.rcore = rcore
         self.m_a = rcore.m_beam
         self.m_b = rcore.m_tar
 
-        self.f = makef3d(σ, self.m_a, self.m_b)
-        h = 8
-        self.xmin = np.array([0, 0, -h], np.float64)
-        self.xmax = np.array([h, h, h], np.float64)
+        self.f, xlimits = makef_simplemaxwellian(σ, self.m_a, self.m_b)
+        self.xmin, self.xmax = xlimits(h)
         self.reactivity = np.vectorize(self.reactivity, otypes=["float"])
 
         self.relerr = relerr
         self.maxeval = maxeval
 
-    def set_relerr(self, relerr):
-        self.relerr = relerr
-
-    def set_maxeval(self, maxeval):
-        self.maxeval = maxeval
-
     def reactivity(self, T):
-        r"""
+        r"""Rate coefficent
+
         Parameters
         ----------
         T : array_like,
@@ -147,7 +161,7 @@ class MaxwellianRateCoefficientCalculator:
         -------
         array_like of rate coefficients, cm³/s
         """
-        barn_meters_squared_to_cubic_centimeter = 1e-22
+        millibarn_meters_squared_to_cubic_centimeter = 1e-25
 
         vth_a = v_th(T, self.m_a)
         vth_b = v_th(T, self.m_b)
@@ -164,7 +178,7 @@ class MaxwellianRateCoefficientCalculator:
             maxEval=self.maxeval,
             adaptive="h",
         )
-        val_cm3_s = val * barn_meters_squared_to_cubic_centimeter
+        val_cm3_s = val * millibarn_meters_squared_to_cubic_centimeter
         return val_cm3_s
 
 
@@ -175,21 +189,12 @@ if __name__ == "__main__":
 
     rc = ReactionCore("D+T")
     cs = ENDFCrossSection(rc)
-    my_t = 40
+    my_t = np.logspace(0, 4, 100)
 
-    rcs = []
-
-    relerrs = [1e-3, 3e-4, 1e-4, 3e-5, 1e-5, 3e-6, 1e-6, 3e-7, 1e-7]
-    mwrc = MaxwellianRateCoefficientCalculator(
-        rc, cs.cross_section, relerr=1e-3, maxeval=1e7
+    mwrc = RateCoefficientIntegratorMaxwellian(
+        rc, cs.cross_section, relerr=1e-4, maxeval=5e4, h=6
     )
-    for rl in relerrs:
-        mwrc.set_relerr(rl)
-        rcs.append(mwrc.reactivity(my_t))
+    σv = mwrc.reactivity(my_t)
 
-    rcs = np.array(rcs)
-
-    plt.loglog(relerrs, np.abs(rcs-rcs[-1])/rcs[-1])
-    plt.xlabel("Desired accuracy")
-    plt.ylabel("Apparent accuracy")
+    plt.loglog(my_t, σv)
     plt.show()
