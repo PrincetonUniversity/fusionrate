@@ -1,5 +1,5 @@
-from fusrate.boschhale import BoschHaleCrossSection
-from fusrate.boschhale import BoschHaleReactivity
+from fusrate.bosch import BoschCrossSection
+from fusrate.bosch import BoschReactivity
 
 from fusrate.endf import ENDFCrossSection
 
@@ -55,17 +55,17 @@ class Reaction:
         # the Bosch paper is the only source of analytic fits
 
         self.has_cross_section_analytic_fit = (
-            name in BoschHaleCrossSection.provides_reactions()
+            name in BoschCrossSection.provides_reactions()
         )
         if self.has_cross_section_analytic_fit:
-            self.bh_cross = BoschHaleCrossSection(name)
+            self.bh_cross = BoschCrossSection(name)
             self.cross_analytic_call = self.bh_cross.cross_section
 
         self.has_reactivity_analytic_fit = (
-            name in BoschHaleReactivity.provides_reactions()
+            name in BoschReactivity.provides_reactions()
         )
         if self.has_reactivity_analytic_fit:
-            self.bh_react = BoschHaleReactivity(name)
+            self.bh_react = BoschReactivity(name)
             self.reactivity_analytic_call = self.bh_react.reactivity
 
         self.cross_sec_interpolator = ENDFCrossSection(name).cross_section

@@ -1,10 +1,10 @@
-import fusrate.boschhale as bh
+import fusrate.bosch as bh
 
 import unittest
 import numpy as np
 
 
-class TestBoschHaleCrossSection(unittest.TestCase):
+class TestBoschCrossSection(unittest.TestCase):
     r"""
     Results are from Table V of
 
@@ -23,7 +23,7 @@ class TestBoschHaleCrossSection(unittest.TestCase):
         assert compare
 
     def test_cross_section_dt(self):
-        cs = bh.BoschHaleCrossSection("DT")
+        cs = bh.BoschCrossSection("DT")
         # in millibarns
         table_results = np.array(
             [
@@ -40,7 +40,7 @@ class TestBoschHaleCrossSection(unittest.TestCase):
         self.compare_results(cs, table_results)
 
     def test_cross_section_dhe3(self):
-        cs = bh.BoschHaleCrossSection("D3He")
+        cs = bh.BoschCrossSection("D3He")
         # in millibarns
         table_results = np.array(
             [
@@ -57,7 +57,7 @@ class TestBoschHaleCrossSection(unittest.TestCase):
         self.compare_results(cs, table_results)
 
     def test_cross_section_ddpt(self):
-        cs = bh.BoschHaleCrossSection("D(d,p)T")
+        cs = bh.BoschCrossSection("D(d,p)T")
         # in millibarns
         table_results = np.array(
             [
@@ -74,7 +74,7 @@ class TestBoschHaleCrossSection(unittest.TestCase):
         self.compare_results(cs, table_results)
 
     def test_cross_section_ddn3he(self):
-        cs = bh.BoschHaleCrossSection("D(d,n)³He")
+        cs = bh.BoschCrossSection("D(d,n)³He")
         # in millibarns
         table_results = np.array(
             [
@@ -91,7 +91,7 @@ class TestBoschHaleCrossSection(unittest.TestCase):
         self.compare_results(cs, table_results)
 
 
-class TestBoschHaleReactivity(unittest.TestCase):
+class TestBoschReactivity(unittest.TestCase):
     r"""
     Results are from Table VIII of
 
@@ -113,7 +113,7 @@ class TestBoschHaleReactivity(unittest.TestCase):
         assert compare
 
     def test_reactivity_dt(self):
-        r = bh.BoschHaleReactivity("DT")
+        r = bh.BoschReactivity("DT")
         # results in cm³/s
         table_results = np.array(
             [
@@ -130,7 +130,7 @@ class TestBoschHaleReactivity(unittest.TestCase):
         self.compare_results(r, table_results)
 
     def test_reactivity_dhe3(self):
-        r = bh.BoschHaleReactivity("D3He")
+        r = bh.BoschReactivity("D3He")
         # results in cm³/s
         table_results = np.array(
             [
@@ -147,7 +147,7 @@ class TestBoschHaleReactivity(unittest.TestCase):
         self.compare_results(r, table_results)
 
     def test_reactivity_ddpt(self):
-        r = bh.BoschHaleReactivity("D(d,p)T")
+        r = bh.BoschReactivity("D(d,p)T")
         # results in cm³/s
         table_results = np.array(
             [
@@ -164,7 +164,7 @@ class TestBoschHaleReactivity(unittest.TestCase):
         self.compare_results(r, table_results)
 
     def test_reactivity_ddn3he(self):
-        r = bh.BoschHaleReactivity("D(d,n)³He")
+        r = bh.BoschReactivity("D(d,n)³He")
         # results in cm³/s
         table_results = np.array(
             [

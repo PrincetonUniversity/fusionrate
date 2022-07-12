@@ -2,12 +2,12 @@ from fusrate.reactionnames import DT_NAME
 from fusrate.reactionnames import DHE3_NAME
 from fusrate.reactionnames import DDT_NAME
 from fusrate.reactionnames import DDHE3_NAME
-from fusrate.reactionnames import bosch_hale_name_resolver
+from fusrate.reactionnames import bosch_name_resolver
 
 import numpy as np
 
 
-class BoschHaleCrossSection:
+class BoschCrossSection:
     r"""Cross section and derivative for four common reactions
 
     References
@@ -58,7 +58,7 @@ class BoschHaleCrossSection:
     }
 
     def __init__(self, raw_reaction_name, energy_range="full"):
-        self.reaction_name = bosch_hale_name_resolver(raw_reaction_name)
+        self.reaction_name = bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         a = coeffs["a"]
@@ -69,16 +69,16 @@ class BoschHaleCrossSection:
                 raise ValueError("This reaction only has one energy range. "
                         "Keyword energy_range should be set to 'full' or left "
                         "unspecified.")
-            self.calculator = BoschHaleCrossSectionCalc(Bg, a, b)
+            self.calculator = BoschCrossSectionCalc(Bg, a, b)
         elif has_multiple_ranges:
             if energy_range == "full":
-                self.calculator = BoschHaleHybridCrossSectionCalc(
+                self.calculator = BoschHybridCrossSectionCalc(
                     Bg, a, b, coeffs["transition"]
                 )
             elif energy_range == "lower":
-                self.calculator = BoschHaleCrossSectionCalc(Bg, a[0], b[0])
+                self.calculator = BoschCrossSectionCalc(Bg, a[0], b[0])
             elif energy_range == "upper":
-                self.calculator = BoschHaleCrossSectionCalc(Bg, a[1], b[1])
+                self.calculator = BoschCrossSectionCalc(Bg, a[1], b[1])
             else:
                 raise ValueError(
                     f"Unknown energy range '{energy_range}'; choices are 'full', 'upper', and 'lower'."
@@ -136,7 +136,7 @@ class BoschHaleCrossSection:
         return r
 
 
-class BoschHaleReactivity:
+class BoschReactivity:
     r"""Maxwellian-averaged reactivity for four common reactions
 
     References
@@ -189,12 +189,12 @@ class BoschHaleReactivity:
     }
 
     def __init__(self, raw_reaction_name):
-        self.reaction_name = bosch_hale_name_resolver(raw_reaction_name)
+        self.reaction_name = bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         mrc2 = coeffs["mrc²"]
         c = coeffs["c"]
-        self.calculator = BoschHaleReactivityCalc(Bg, mrc2, c)
+        self.calculator = BoschReactivityCalc(Bg, mrc2, c)
 
     @classmethod
     def provides_reactions(cls):
@@ -242,7 +242,7 @@ class BoschHaleReactivity:
         return self.COEFFICIENTS[self.reaction_name]["range"]
 
 
-class BoschHaleHybridCrossSectionCalc:
+class BoschHybridCrossSectionCalc:
     r"""Separate fits for two energy ranges
 
     References
@@ -253,8 +253,8 @@ class BoschHaleHybridCrossSectionCalc:
     """
 
     def __init__(self, bg, a, b, transition):
-        self.lower_calc = BoschHaleCrossSectionCalc(bg, a[0], b[0])
-        self.upper_calc = BoschHaleCrossSectionCalc(bg, a[1], b[1])
+        self.lower_calc = BoschCrossSectionCalc(bg, a[0], b[0])
+        self.upper_calc = BoschCrossSectionCalc(bg, a[1], b[1])
         self.transition_energy = transition
 
     def cross_section(self, e):
@@ -277,8 +277,8 @@ class BoschHaleHybridCrossSectionCalc:
         return σ
 
 
-class BoschHaleCrossSectionCalc:
-    r"""Calculates cross sections of the Hale-Bosch type"""
+class BoschCrossSectionCalc:
+    r"""Calculates cross sections of the Bosch-Hale type"""
 
     def __init__(self, bg, a, b):
         self.bg = bg
@@ -388,7 +388,7 @@ class BoschHaleCrossSectionCalc:
         ) / (2 * e ** (5 / 2))
 
 
-class BoschHaleReactivityCalc:
+class BoschReactivityCalc:
     r"""Calculates Maxwell-averaged reactivity
 
     Todo: test whether the 'optimizations' are really any faster;
@@ -596,7 +596,7 @@ class BoschHaleReactivityCalc:
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    bh = BoschHaleCrossSection("T(d,n)4He")
+    bh = BoschCrossSection("T(d,n)4He")
     energy_range = bh.prescribed_range()
     e1 = np.logspace(*np.log10(energy_range), 500)
     sigma = bh.cross_section(e1)
