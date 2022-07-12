@@ -139,11 +139,14 @@ class ENDFCrossSection:
             self.bt_to_com = r.bt_to_com
 
         self.canonical_reaction_name = name
-        x_raw, y = cross_section_data(name)
+        x_raw, y_raw = cross_section_data(name)
 
         # Change from lab frame to COM frame
         # and from eV to keV (to match typical scales and Bosch-Hale)
         x = x_raw * self.bt_to_com / 1e3
+
+        # Change from b to mb
+        y = y_raw * 1e3
 
         if interpolation == "LogLogExtrapolation":
             self.interp = LogLogExtrapolation(x, y, linear_extension=True)
@@ -157,7 +160,7 @@ class ENDFCrossSection:
 
 
     def cross_section(self, e):
-        r"""
+        r"""Look up the cross section from ENDF data
         Parameters
         ----------
         e : array_like,
@@ -165,7 +168,7 @@ class ENDFCrossSection:
 
         Returns
         -------
-        Cross sections in b
+        Cross sections in mb
         """
         return self.interp(e)
 
