@@ -19,7 +19,9 @@ setuptools.setup(
     ],
     python_requires='>=3.8',
     install_requires=[
-        "plasmapy >= 0.6.0",
+        "cubature >= 0.14.5",
+        "numba >= 0.55.2",
+        "numpy >= 1.21.6",
     ],
     include_package_data=True,
     package_data = {
