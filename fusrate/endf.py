@@ -125,7 +125,7 @@ class ENDFCrossSection:
         r"""
         s: reaction name string
         """
-        if type(r) == str:
+        if isinstance(r, str):
             name = rn.name_resolver(r)
 
             beam, target = rn.reactants(name)
@@ -148,6 +148,8 @@ class ENDFCrossSection:
         # Change from b to mb
         y = y_raw * 1e3
 
+        self.x = x
+
         if interpolation == "LogLogExtrapolation":
             self.interp = LogLogExtrapolation(x, y, linear_extension=True)
         elif interpolation == "LogLogReinterpolation":
@@ -157,6 +159,9 @@ class ENDFCrossSection:
             raise ValueError(f"Unknown interpolation type {interpolation}."
                 "Allowed values are LogLogExtrapolation and"
                 "LogLogReinterpolation.")
+
+    def __call__(self, e):
+        return self.cross_section(e)
 
 
     def cross_section(self, e):
@@ -172,6 +177,14 @@ class ENDFCrossSection:
         """
         return self.interp(e)
 
+    def prescribed_range(self):
+        r"""
+        Returns
+        -------
+        [min, max] of COM energy range in keV
+        """
+        return [min(self.x), max(self.x)]
+
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -182,6 +195,8 @@ if __name__ == "__main__":
 
     newx = np.logspace(0, 3, 100)
 
-    plt.loglog(newx, endf.cross_section(newx))
-    plt.loglog(newx, llr.cross_section(newx))
+    print(llr.prescribed_range())
+
+    plt.loglog(newx, endf(newx))
+    plt.loglog(newx, llr(newx))
     plt.show()
