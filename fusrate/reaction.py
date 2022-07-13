@@ -106,6 +106,17 @@ class Reaction:
         pass
 
     def cross_section_analytic_fit(self, e):
+        r"""Fit from Bosch-Hale
+
+        Parameters
+        ----------
+        e : array_like,
+          energies in keV
+
+        Returns
+        -------
+        Cross sections in mb
+        """
         return self.cross_analytic_call(e)
 
     def _no_cross_analytic(self, *T, **kwargs):
