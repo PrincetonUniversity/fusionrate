@@ -14,7 +14,16 @@ import fusrate.reactionnames as rn
 
 
 class ReactionCore:
-    r"""Basic, cross-section-independent reaction data"""
+    r"""Basic, cross-section-independent reaction data
+
+    Beam and Target refer to the formally specified reactants in the canonical
+    name, Target(Beam, product1)product2.
+    This is important because ENDF cross sections are given in a frame where
+    the target is in the lab frame, and we want to convert to the
+    center-of-mass frame.
+
+    I'm not sure if product1 and product2 have specific names.
+    """
 
     def __init__(self, name):
         self.name = rn.name_resolver(name)
@@ -54,17 +63,12 @@ class Reaction:
 
         # the Bosch paper is the only source of analytic fits
 
-        self.has_cross_section_analytic_fit = (
+        self.has_analytic_fit = (
             name in BoschCrossSection.provides_reactions()
         )
-        if self.has_cross_section_analytic_fit:
+        if self.has_analytic_fit:
             self.bh_cross = BoschCrossSection(name)
             self.cross_analytic_call = self.bh_cross.cross_section
-
-        self.has_reactivity_analytic_fit = (
-            name in BoschReactivity.provides_reactions()
-        )
-        if self.has_reactivity_analytic_fit:
             self.bh_react = BoschReactivity(name)
             self.reactivity_analytic_call = self.bh_react.reactivity
 
