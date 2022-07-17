@@ -31,6 +31,24 @@ def cross_section_filename(canonical_reaction_name):
 
 
 def cross_section_data(canonical_reaction_name):
+    """Loads data from file
+
+    Parameters
+    ----------
+    canonical_reaction_name : string
+
+    Returns
+    -------
+    np.array
+
+    Examples
+    --------
+    >>> cross_section_data("T(d,n)⁴He")
+    [[1.0000e+02, 2.0469e-56],
+     [2.0000e+02, 7.4327e-39],
+     ...
+    ]
+    """
     filename = cross_section_filename(canonical_reaction_name)
     return load_data_file(filename)
 
