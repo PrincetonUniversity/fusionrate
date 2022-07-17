@@ -2,8 +2,7 @@ from importlib import resources
 
 import numpy as np
 
-from fusrate.reactionnames import reaction_name_simplify
-from fusrate.reactionnames import reaction_name_to_endf
+from fusrate.reactionnames import reaction_filename_part
 
 DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
@@ -25,9 +24,8 @@ def load_data_file(dname):
 
 
 def cross_section_filename(canonical_reaction_name):
-    s = reaction_name_simplify(canonical_reaction_name)
-    s = reaction_name_to_endf(s)
-    return CROSS_SECTION_PREFIX + s + CROSS_SECTION_FILETYPE
+    s = reaction_filename_part(canonical_reaction_name)
+    return f"{CROSS_SECTION_PREFIX}{s}{CROSS_SECTION_FILETYPE}"
 
 
 def cross_section_data(canonical_reaction_name):

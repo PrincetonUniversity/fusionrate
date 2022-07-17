@@ -20,6 +20,12 @@ ALL_REACTIONS = [
     DDHE3_NAME,
     PLI6_NAME,
     PB11_NAME,
+    TT_NAME,
+    HT_NAME,
+    HH_NAME,
+    DLI6A_NAME,
+    DLI6N_NAME,
+    DLI6P_NAME,
 ]
 
 
@@ -88,6 +94,7 @@ def beam_species(s):
     beam_sp = reactants.split("(")[1]
     return particle_form_to_target_form(beam_sp)
 
+
 def reactants(s):
     r"""Names of beam, target species
 
@@ -154,6 +161,12 @@ def name_resolver(reaction_raw_name):
         except ValueError:
             pass
 
+    if canonical_name is None:
+        try:
+            canonical_name = proton_lithium_name_resolver(reaction_raw_name)
+        except ValueError:
+            pass
+
     if canonical_name is not None:
         return canonical_name
     else:
@@ -188,6 +201,12 @@ def reaction_name_to_endf(canonical_reaction_name):
     return s
 
 
+def reaction_filename_part(canonical_reaction_name):
+    s = reaction_name_simplify(canonical_reaction_name)
+    s = reaction_name_to_endf(s)
+    return s
+
+
 def proton_boron_name_resolver(reaction_raw_name):
     NAMES = [
         PB11_NAME,
@@ -209,6 +228,40 @@ def proton_boron_name_resolver(reaction_raw_name):
     raise ValueError(
         f"""
         In the proton_boron_name_resolver, {reaction_raw_name} could not be
+        resolved. Possible options are {NAMES}.
+        """
+    )
+
+
+def proton_lithium_name_resolver(reaction_raw_name):
+    NAMES = [
+        PLI6_NAME,
+        "pLi6",
+        "p+Li6",
+        "p+6Li",
+        "p+Li6→α+³He",
+        "p+Li6→³He+α",
+        "p+Li6→³He+⁴He",
+        "p+Li6→⁴He+³He",
+        "Li6+p→α+³He",
+        "Li6+p→³He+α",
+        "Li6+p→³He+⁴He",
+        "Li6+p→⁴He+³He",
+        "p+6Li→α+³He",
+        "p+6Li→³He+α",
+        "p+6Li→³He+⁴He",
+        "p+6Li→⁴He+³He",
+    ]
+
+    reaction_name = reaction_name_simplify(reaction_raw_name)
+
+    for n in NAMES:
+        if reaction_name == reaction_name_simplify(n):
+            return PLI6_NAME
+
+    raise ValueError(
+        f"""
+        In the proton_lithium_name_resolver, {reaction_raw_name} could not be
         resolved. Possible options are {NAMES}.
         """
     )

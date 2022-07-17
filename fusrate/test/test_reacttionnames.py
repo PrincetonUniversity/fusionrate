@@ -150,6 +150,28 @@ class TestBoschReactionNameResolver(unittest.TestCase):
     def test_bad_name(self):
         self.assertRaises(ValueError, rn.bosch_name_resolver, "bad")
 
+class TestProtonBoronNameResolver(unittest.TestCase):
+    def test_pb_0(self):
+        assert PB11_NAME == rn.proton_boron_name_resolver(PB11_NAME)
+
+    def test_pb_1(self):
+        assert PB11_NAME == rn.proton_boron_name_resolver("pB")
+
+    def test_pb_2(self):
+        assert PB11_NAME == rn.proton_boron_name_resolver("p+B")
+
+    def test_pb_3(self):
+        assert PB11_NAME == rn.proton_boron_name_resolver("p+¹¹B")
+
+class TestProtonLithiumNameResolver(unittest.TestCase):
+    def test_pli_0(self):
+        assert PLI6_NAME == rn.proton_lithium_name_resolver(PLI6_NAME)
+
+    def test_pli_1(self):
+        assert PLI6_NAME == rn.proton_lithium_name_resolver("p+⁶Li")
+
+    def test_pli_2(self):
+        assert PLI6_NAME == rn.proton_lithium_name_resolver("p+⁶Li->⁴He+³He")
 
 if __name__ == "__main__":
     unittest.main()
