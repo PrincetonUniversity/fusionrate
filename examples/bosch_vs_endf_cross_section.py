@@ -2,16 +2,15 @@
 # are specified in terms of beam-on-stationary-target energies.
 # We need the beam-target to COM correction factor.
 # Here the 'tritium' is the 'target'.
-
 # The first plot demonstrates that these two align when subjected to the
 # transformation.
 # The second plot compares the two (since they are quite close.)
 # The dashed line represents the region outside the stated validity of the
 # Bosch-Hale formula.
-from fusrate.bosch import BoschCrossSection
-from fusrate.load_data import load_data_file
-from fusrate.ion_data import ion_mass
 import fusrate.reactionnames as rn
+from fusrate.bosch import BoschCrossSection
+from fusrate.ion_data import ion_mass
+from fusrate.load_data import load_data_file
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,7 +67,7 @@ ax.set_xlim([1e2, 1e8])
 ax.set_ylim([0.5, 1.1])
 ax.set_xlabel("COM energy/eV")
 ax.set_ylabel("Relative cross section: Bosch-Hale/ENDF")
-ax.axhline(1, lw=0.5, color='gray')
+ax.axhline(1, lw=0.5, color="gray")
 
 x_converted = x_endf * beam_target_to_com
 x_converted_keV = x_converted / 1000

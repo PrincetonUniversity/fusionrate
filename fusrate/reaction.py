@@ -1,16 +1,9 @@
+import fusrate.reactionnames as rn
 from fusrate.bosch import BoschCrossSection
 from fusrate.bosch import BoschReactivity
-
 from fusrate.endf import ENDFCrossSection
-
-from fusrate.ratecoefficient import RateCoefficientIntegratorMaxwellian
-
 from fusrate.ion_data import ion_mass
-
-import fusrate.reactionnames as rn
-
-
-# canonical reaction names
+from fusrate.ratecoefficient import RateCoefficientIntegratorMaxwellian
 
 
 class ReactionCore:
@@ -63,9 +56,7 @@ class Reaction:
 
         # the Bosch paper is the only source of analytic fits
 
-        self.has_analytic_fit = (
-            name in BoschCrossSection.provides_reactions()
-        )
+        self.has_analytic_fit = name in BoschCrossSection.provides_reactions()
         if self.has_analytic_fit:
             self.bh_cross = BoschCrossSection(name)
             self.cross_analytic_call = self.bh_cross.cross_section
@@ -171,4 +162,3 @@ if __name__ == "__main__":
     print(s)
     s = r.reactivity_analytic_fit(ts)
     print(s)
-

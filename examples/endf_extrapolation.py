@@ -1,11 +1,10 @@
 # Here I show how the cross section extrapolation works
 # It is linear in log-log space
-
-from fusrate.load_data import cross_section_data
-from fusrate.endf import LogLogExtrapolation
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+from fusrate.endf import LogLogExtrapolation
+from fusrate.load_data import cross_section_data
 
 fig, ax = plt.subplots()
 ax.set_xscale("log")

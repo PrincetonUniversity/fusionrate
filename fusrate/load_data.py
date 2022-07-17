@@ -1,13 +1,14 @@
-from fusrate.reactionnames import reaction_name_simplify
-from fusrate.reactionnames import reaction_name_to_endf
-
 from importlib import resources
 
 import numpy as np
 
+from fusrate.reactionnames import reaction_name_simplify
+from fusrate.reactionnames import reaction_name_to_endf
+
 DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
 CROSS_SECTION_FILETYPE = ".csv"
+
 
 def locate_data_file(dname):
     if resources.is_resource(DEFAULT_DATA_DIR, dname):

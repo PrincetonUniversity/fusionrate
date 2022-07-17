@@ -1,13 +1,14 @@
-from fusrate.load_data import DEFAULT_DATA_DIR
-
-from importlib import resources
 import json
+from importlib import resources
+
+from fusrate.load_data import DEFAULT_DATA_DIR
 
 __all__ = ["ion_mass"]
 
 with resources.path(DEFAULT_DATA_DIR, "ions.json") as f:
     with open(f, "rb") as s:
         ion_data = json.load(s)
+
 
 def ion_mass(s):
     r"""
@@ -20,7 +21,8 @@ def ion_mass(s):
     -------
     Mass in amu
     """
-    return ion_data[s]['mass']
+    return ion_data[s]["mass"]
+
 
 if __name__ == "__main__":
     print(ion_data)

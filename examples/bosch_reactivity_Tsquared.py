@@ -1,7 +1,7 @@
-from fusrate.bosch import BoschReactivity
-
 import matplotlib.pyplot as plt
 import numpy as np
+
+from fusrate.bosch import BoschReactivity
 
 line_styles = [
     "solid",

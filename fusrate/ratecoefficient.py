@@ -1,10 +1,10 @@
+import numba
+import numpy as np
+from cubature import cubature
+
 from fusrate.constants import atomic_mass_unit as amu
 from fusrate.constants import kiloelectronvolt as keV
 from fusrate.constants import millibarn_meters_squared_to_cubic_centimeter
-
-from cubature import cubature
-import numba
-import numpy as np
 
 
 @numba.njit(cache=True)

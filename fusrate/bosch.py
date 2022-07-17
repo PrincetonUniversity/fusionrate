@@ -1,10 +1,10 @@
-from fusrate.reactionnames import DT_NAME
-from fusrate.reactionnames import DHE3_NAME
-from fusrate.reactionnames import DDT_NAME
-from fusrate.reactionnames import DDHE3_NAME
-from fusrate.reactionnames import bosch_name_resolver
-
 import numpy as np
+
+from fusrate.reactionnames import bosch_name_resolver
+from fusrate.reactionnames import DDHE3_NAME
+from fusrate.reactionnames import DDT_NAME
+from fusrate.reactionnames import DHE3_NAME
+from fusrate.reactionnames import DT_NAME
 
 
 class BoschCrossSection:
@@ -66,9 +66,11 @@ class BoschCrossSection:
         has_multiple_ranges = type(a[0]) == list
         if not has_multiple_ranges:
             if energy_range != "full":
-                raise ValueError("This reaction only has one energy range. "
-                        "Keyword energy_range should be set to 'full' or left "
-                        "unspecified.")
+                raise ValueError(
+                    "This reaction only has one energy range. "
+                    "Keyword energy_range should be set to 'full' or left "
+                    "unspecified."
+                )
             self.calculator = BoschCrossSectionCalc(Bg, a, b)
         elif has_multiple_ranges:
             if energy_range == "full":

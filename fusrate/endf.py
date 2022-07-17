@@ -1,12 +1,10 @@
-import fusrate.reactionnames as rn
-from fusrate.load_data import cross_section_data
-from fusrate.ion_data import ion_mass
-
+import numba
+import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
 
-import numpy as np
-
-import numba
+import fusrate.reactionnames as rn
+from fusrate.ion_data import ion_mass
+from fusrate.load_data import cross_section_data
 
 
 class LogLogExtrapolation:
@@ -120,7 +118,6 @@ class LogLogReinterpolation:
 
 
 class ENDFCrossSection:
-
     def __init__(self, r, interpolation="LogLogExtrapolation"):
         r"""
         s: reaction name string
@@ -156,13 +153,14 @@ class ENDFCrossSection:
             interp_source = LogLogReinterpolation(x, y, linear_extension=True)
             self.interp = interp_source.make_jitfunction()
         else:
-            raise ValueError(f"Unknown interpolation type {interpolation}."
+            raise ValueError(
+                f"Unknown interpolation type {interpolation}."
                 "Allowed values are LogLogExtrapolation and"
-                "LogLogReinterpolation.")
+                "LogLogReinterpolation."
+            )
 
     def __call__(self, e):
         return self.cross_section(e)
-
 
     def cross_section(self, e):
         r"""Look up the cross section from ENDF data
@@ -191,7 +189,7 @@ if __name__ == "__main__":
     from fusrate.load_data import load_data_file
 
     endf = ENDFCrossSection("D+T")
-    llr = ENDFCrossSection("D+T", interpolation='LogLogReinterpolation')
+    llr = ENDFCrossSection("D+T", interpolation="LogLogReinterpolation")
 
     newx = np.logspace(0, 3, 100)
 
