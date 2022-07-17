@@ -8,7 +8,7 @@
 # The second plot compares the two (since they are quite close.)
 # The dashed line represents the region outside the stated validity of the
 # Bosch-Hale formula.
-from fusrate.boschhale import BoschHaleCrossSection
+from fusrate.bosch import BoschCrossSection
 from fusrate.load_data import load_data_file
 from fusrate.ion_data import ion_mass
 import fusrate.reactionnames as rn
@@ -26,7 +26,7 @@ m_tar = ion_mass(tar)
 beam_target_to_com = m_tar / (m_beam + m_tar)
 
 # center of mass energies
-cs = BoschHaleCrossSection(reaction)
+cs = BoschCrossSection(reaction)
 upper_limit = cs.prescribed_range()[-1]
 
 e = np.logspace(-1, np.log10(upper_limit), 500)
@@ -45,7 +45,7 @@ ax.set_ylabel("Cross section")
 x_hb = e * keV_TO_eV
 y_hb = cs.cross_section(e) * millibarns_TO_barns
 
-ax.plot(x_hb, y_hb, label="Hale-Bosch")
+ax.plot(x_hb, y_hb, label="Bosch-Hale")
 
 # Extension beyond the indicated safe range
 x_hb = e2 * keV_TO_eV
@@ -67,7 +67,7 @@ ax.set_yscale("log")
 ax.set_xlim([1e2, 1e8])
 ax.set_ylim([0.5, 1.1])
 ax.set_xlabel("COM energy/eV")
-ax.set_ylabel("Relative cross section: Hale-Bosch/ENDF")
+ax.set_ylabel("Relative cross section: Bosch-Hale/ENDF")
 ax.axhline(1, lw=0.5, color='gray')
 
 x_converted = x_endf * beam_target_to_com
