@@ -41,7 +41,7 @@ def reduced_mass(m1, m2):
     return μ
 
 
-def makef_simplemaxwellian(σ, m1, m2):
+def makef_simplemaxwellian(σ, m1, m2, extramult=1):
     r"""Integrand-making function
 
     Does the integration in Z1 R2-Z2 space.
@@ -67,7 +67,7 @@ def makef_simplemaxwellian(σ, m1, m2):
     """
 
     μ = reduced_mass(m1, m2)
-    leading_factor = 2 ** (7 / 2) / np.pi
+    leading_factor = extramult * 2 ** (7 / 2) / np.pi
 
     @numba.njit(cache=True)
     def com_energy_keV(y1z, y2r, y2z):
@@ -139,8 +139,67 @@ def makef_simplemaxwellian(σ, m1, m2):
 
     return f, x_limits
 
+def makef_simplermaxwellian(σ, m1, m2, extramult=1):
+    r"""Even better integrand function
 
-def makef_bimaxwellian(σ, m1, m2):
+    Does the integration in energy space.
+
+    Integration limits:
+    U: 0 to ∞
+
+    Parameters
+    ----------
+    σ : function
+        Cross section function, which takes as a single argument energy in keV
+        and returns the cross section in millibarns
+    m1, m2 : float
+        reactant masses in amu
+
+    Returns
+    -------
+    functions f, x_limits
+    """
+    μ = reduced_mass(m1, m2) * amu
+    leading_factor = 2 * np.sqrt(2 * keV / (np.pi * μ))
+    leading_factor *= extramult
+
+    def f(un_array, T):
+        r"""Reactivity integrand
+
+        Parameters
+        ----------
+        un_array : array_like
+            n x 1 array of energies normalized to the temperature
+        T : floats
+            Temperature in keV. Passed as fixed arguments.
+        """
+        un = un_array[:, 0]
+        maxwellian = np.exp(-un)
+        cross_section = σ(un * T)
+        jacobian = un
+
+        return (
+            leading_factor
+            * cross_section
+            * jacobian
+            * maxwellian
+        )
+
+    def x_limits(h):
+        r"""Limits function corresponding to the integration strategy
+
+        Parameters
+        ----------
+        h : number
+            multiples of the thermal velocity to integrate out to
+        """
+        xmin = np.array([0,], np.float64)
+        xmax = np.array([h,], np.float64)
+        return xmin, xmax
+
+    return f, x_limits
+
+def makef_bimaxwellian(σ, m1, m2, extramult=1):
     r"""Integrand-making function for T⊥ ≠ T‖
 
     Parameters
@@ -156,6 +215,7 @@ def makef_bimaxwellian(σ, m1, m2):
     functions f, x_limits
     """
     μ = reduced_mass(m1, m2)
+    leading_factor = 2 ** (7 / 2) / np.pi ** (2) * extramult
 
     @numba.njit(cache=True)
     def sq_norm_rel_v(y1r, y1z, y2x, y2y, y2z):
@@ -190,7 +250,6 @@ def makef_bimaxwellian(σ, m1, m2):
     def f(u, vth1_perp, vth1_par, vth2_perp, vth2_par):
         u1r, u1z, u2x, u2y, u2z = u.T
 
-        leading_factor = 2 ** (7 / 2) / np.pi ** (2)
 
         maxwellfactor = np.exp(-np.sum(np.square(u), axis=1))
         jacobian = u1r
@@ -233,7 +292,8 @@ def makef_bimaxwellian(σ, m1, m2):
 
 
 class RateCoefficientIntegrator:
-    def __init__(self, rcore, σ, integrand_maker, relerr, maxeval, h):
+    def __init__(self, rcore, σ, integrand_maker, relerr, maxeval, h,
+            extramult=None):
         self.rcore = rcore
         self.m_a = rcore.m_beam
         self.m_b = rcore.m_tar
@@ -242,7 +302,9 @@ class RateCoefficientIntegrator:
         self.maxeval = maxeval
         self.h = h
 
-        self.f, xlimits = integrand_maker(σ, self.m_a, self.m_b)
+        self.extramult=extramult
+
+        self.f, xlimits = integrand_maker(σ, self.m_a, self.m_b, extramult)
         self.xmin, self.xmax = xlimits(h)
 
         self.reactivity = np.vectorize(self.reactivity, otypes=["float"])
@@ -251,8 +313,9 @@ class RateCoefficientIntegrator:
 class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
     r"""Seperate perp and parallel temperatures, no drifts"""
 
-    def __init__(self, rcore, σ, relerr=1e-4, maxeval=1e7, h=8):
-        super().__init__(rcore, σ, makef_bimaxwellian, relerr, maxeval, h)
+    def __init__(self, rcore, σ, relerr=1e-4, maxeval=1e7, h=8, extramult=1):
+        super().__init__(rcore, σ, makef_bimaxwellian, relerr, maxeval, h,
+                extramult)
 
     def reactivity(self, T_perp, T_par):
         r"""Rate coefficent
@@ -288,14 +351,15 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
             adaptive="h",
         )
         val_cm3_s = val * millibarn_meters_squared_to_cubic_centimeter
-        return val_cm3_s
+        return val_cm3_s / self.extramult
 
 
 class RateCoefficientIntegratorMaxwellian(RateCoefficientIntegrator):
     r"""Isotropic, single ion temperature, no drifts"""
 
-    def __init__(self, rcore, σ, relerr=1e-5, maxeval=1e5, h=8):
-        super().__init__(rcore, σ, makef_simplemaxwellian, relerr, maxeval, h)
+    def __init__(self, rcore, σ, relerr=1e-6, maxeval=1e4, h=20, extramult=1):
+        super().__init__(rcore, σ, makef_simplermaxwellian, relerr, maxeval, h,
+                extramult)
 
     def reactivity(self, T):
         r"""Rate coefficent
@@ -309,24 +373,22 @@ class RateCoefficientIntegratorMaxwellian(RateCoefficientIntegrator):
         -------
         array_like of rate coefficients, cm³/s
         """
-
-        vth_a = v_th(T, self.m_a)
-        vth_b = v_th(T, self.m_b)
-
+        t_factor = T**(1/2)
         val, err = cubature(
             self.f,
-            3,
+            1,
             1,
             self.xmin,
             self.xmax,
-            args=(vth_a, vth_b),
+            args=(T,),
             vectorized=True,
             relerr=self.relerr,
             maxEval=self.maxeval,
             adaptive="h",
         )
+        val *= t_factor
         val_cm3_s = val * millibarn_meters_squared_to_cubic_centimeter
-        return val_cm3_s
+        return val_cm3_s / self.extramult
 
 
 if __name__ == "__main__":
@@ -336,21 +398,20 @@ if __name__ == "__main__":
 
     rc = ReactionCore("D+T")
     cs = ENDFCrossSection(rc)
-    my_t = np.logspace(0, 4, 20)
+    my_t = np.logspace(0, 3, 100)
+
+    t1, t2 = np.meshgrid(my_t, my_t)
 
     mwrc = RateCoefficientIntegratorMaxwellian(
-        rc, cs.cross_section, relerr=1e-4, maxeval=5e4, h=8
+        rc, cs.cross_section, relerr=1e-4, maxeval=5e4, h=10, extramult=1e5
     )
     σv = mwrc.reactivity(my_t)
 
-    mwrc2 = RateCoefficientIntegratorBiMaxwellian(
-        rc, cs.cross_section, relerr=1e-5, maxeval=3e7, h=8
-    )
-    σv2 = mwrc2.reactivity(my_t, my_t)
+    # mwrc2 = RateCoefficientIntegratorBiMaxwellian(
+    #     rc, cs.cross_section, relerr=1e-3, maxeval=1e6, h=8
+    # )
+    # σv2 = mwrc2.reactivity(t1, t2)
 
-    # plt.loglog(my_t, σv)
+    plt.loglog(my_t, σv)
     # plt.loglog(my_t, σv2)
-    # plt.show()
-
-    plt.loglog(my_t, σv / σv2)
     plt.show()

@@ -1,11 +1,13 @@
 from importlib import resources
 
+import h5py
 import numpy as np
 
 from fusrate.reactionnames import reaction_filename_part
 
 DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
+RATE_COEFF_PREFIX = "rate_coefficient_"
 CROSS_SECTION_FILETYPE = ".csv"
 
 
@@ -26,6 +28,16 @@ def load_data_file(dname):
 def cross_section_filename(canonical_reaction_name):
     s = reaction_filename_part(canonical_reaction_name)
     return f"{CROSS_SECTION_PREFIX}{s}{CROSS_SECTION_FILETYPE}"
+
+
+def ratecoeff_filename(canonical_reaction_name: str, distribution: str) -> str:
+    r"""
+    Parameters
+    ----------
+    distribution : str
+    """
+    s = reaction_filename_part(canonical_reaction_name)
+    return f"{RATE_COEFF_PREFIX}{s}_{distribution}"
 
 
 def cross_section_data(canonical_reaction_name):
@@ -49,6 +61,34 @@ def cross_section_data(canonical_reaction_name):
     """
     filename = cross_section_filename(canonical_reaction_name)
     return load_data_file(filename)
+
+
+def save_ratecoeff_hdf5(
+    canonical_name,
+    distribution,
+    parameter_limits,
+    parameter_units,
+    parameter_descriptions,
+    parameter_space_descriptions,
+    rate_coefficients,
+    data_units,
+    time_generated,
+):
+    reaction_filename = ratecoeff_filename(canonical_name, distribution)
+
+    with h5py.File(reaction_filename + ".hdf5", "w") as f:
+        dset = f.create_dataset("rate_coefficients", data=rate_coefficients)
+        dset.attrs["Reaction"] = canonical_name
+        dset.attrs["Type of data"] = reaction_filename
+        dset.attrs["Data units"] = data_units
+        dset.attrs["distribution"] = distribution
+        dset.attrs["Parameter limits"] = parameter_limits
+        dset.attrs["Parameter units"] = parameter_units
+        dset.attrs["Parameter descriptions"] = parameter_descriptions
+        dset.attrs[
+            "Parameter space descriptions"
+        ] = parameter_space_descriptions
+        dset.attrs["Time generated"] = time_generated
 
 
 if __name__ == "__main__":

@@ -45,9 +45,6 @@ class Reaction:
     r"""Main reaction class"""
 
     def __init__(self, name):
-        # try bh name resolver. If that fails,
-        # try pB11 name resolver. If that fails, try
-        # # try pLi6
         self.rcore = ReactionCore(name)
         name = self.rcore.canonical_name()
 
