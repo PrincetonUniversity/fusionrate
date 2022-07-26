@@ -1,9 +1,15 @@
 import fusrate.reactionnames as rn
 from fusrate.bosch import BoschCrossSection
-from fusrate.bosch import BoschReactivity
+from fusrate.bosch import BoschRateCoeff
 from fusrate.endf import ENDFCrossSection
 from fusrate.ion_data import ion_mass
 from fusrate.ratecoefficient import RateCoefficientIntegratorMaxwellian
+from fusrate.ratecoefficient import RateCoefficientInterpolator
+from fusrate.constants import Distributions
+
+INTERPOLATION = "interpolation"
+ANALYTIC = "analytic"
+INTEGRATION = "integration"
 
 
 class ReactionCore:
@@ -47,24 +53,51 @@ class Reaction:
     def __init__(self, name):
         self.rcore = ReactionCore(name)
         name = self.rcore.canonical_name()
+        self.name = name
 
         self.cross_analytic_call = self._no_cross_analytic
-        self.reactivity_analytic_call = self._no_reactivity_analytic
 
-        # the Bosch paper is the only source of analytic fits
+        self.ratecoeff = dict()
+        # Maxwellian distribution always exists
+        self.ratecoeff[Distributions.MAXW] = dict()
 
+        # see if Bosch-Hale provides reactivity
         self.has_analytic_fit = name in BoschCrossSection.provides_reactions()
         if self.has_analytic_fit:
             self.bh_cross = BoschCrossSection(name)
             self.cross_analytic_call = self.bh_cross.cross_section
-            self.bh_react = BoschReactivity(name)
-            self.reactivity_analytic_call = self.bh_react.reactivity
+            b_rcf = BoschRateCoeff(name)
+            self.ratecoeff[Distributions.MAXW][ANALYTIC] = b_rcf.ratecoeff
 
         self.cross_sec_interpolator = ENDFCrossSection(name).cross_section
 
-        self.reactivity_integrator = RateCoefficientIntegratorMaxwellian(
+        self._load_maxwellian_rate_coefficient_integrator()
+        self._load_maxwellian_rate_coefficient_interpolator()
+
+        self._rcmaxinterp = self.ratecoeff[Distributions.MAXW][
+            INTERPOLATION
+        ]
+
+    def _load_maxwellian_rate_coefficient_integrator(self):
+        self.ratecoeff[Distributions.MAXW][
+            INTEGRATION
+        ] = RateCoefficientIntegratorMaxwellian(
             self.rcore, self.cross_sec_interpolator
-        ).reactivity
+        ).ratecoeff
+
+    def _load_maxwellian_rate_coefficient_interpolator(self):
+        ratecoeff_interp_maxw = RateCoefficientInterpolator(
+            self.name, Distributions.MAXW
+        )
+        self.ratecoeff[Distributions.MAXW][
+            INTERPOLATION
+        ] = ratecoeff_interp_maxw.rate_coefficient
+
+    def __str__(self):
+        return f"Reaction {self.canonical_name()}"
+
+    def __repr__(self):
+        return f"fusrate.reaction.Reaction({self.canonical_name()})"
 
     def canonical_name(self):
         return self.rcore.canonical_name()
@@ -94,23 +127,6 @@ class Reaction:
         """
         return self.cross_sec_interpolator(e)
 
-    def cross_section_d(self, e):
-        pass
-
-    def cross_section_analytic_fit(self, e):
-        r"""Fit from Bosch-Hale
-
-        Parameters
-        ----------
-        e : array_like,
-          energies in keV
-
-        Returns
-        -------
-        Cross sections in mb
-        """
-        return self.cross_analytic_call(e)
-
     def _no_cross_analytic(self, *T, **kwargs):
         r"""There is no implemented analytic formation to the reactivity.
 
@@ -122,31 +138,36 @@ class Reaction:
             f" function for {self.canonical_name()}."
         )
 
-    ### reactivity functions
+    def _validate_ratecoeff_opts(
+        self, distribution: str, scheme: str, derivatives: bool
+    ):
+        issues = []
+        if scheme == ANALYTIC and distribution != Distributions.MAXW:
+            err = f"⋅ Analytic formulas are only for the {Distributions.MAXW} distribution."
+            issues.append(err)
+        if derivatives and scheme == INTEGRATION:
+            err = f"""⋅ Derivatives are only available via interpolation or from
+an analytic formula (for {Distributions.MAXW} distributions for the four D reactions in
+the Bosch-Hale paper). Direct computation is not yet supported."""
+            issues.append(err)
+        if issues:
+            raise ValueError(
+                f"{len(issues)} issue(s) detected in call to \
+rate_coefficient_x:\n"
+                + "\n".join(issues)
+            )
 
-    def reactivity(self, T):
-        pass
+    def rate_coefficient(
+        self,
+        *args,
+        distribution=Distributions.MAXW,
+        scheme=INTERPOLATION,
+        derivatives=False,
+    ):
+        self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
-    def reactivity_integration(self, T):
-        r"""Perform an integration"""
-        return self.reactivity_integrator(T)
-
-    def reactivity_analytic_fit(self, T):
-        r"""Use the analytic fit"""
-        return self.reactivity_analytic_call(T)
-
-    def reactivity_d(self, T):
-        pass
-
-    def _no_reactivity_analytic(self, *T, **kwargs):
-        r"""There is no implemented analytic formation to the reactivity.
-
-        Please do not call the function reactivity_analytic, or it will throw
-        an error.
-        """
-        raise NotImplementedError(
-            f"There is no implemented analytic reactivity"
-            f" function for {self.canonical_name()}."
+        return self.ratecoeff[distribution][scheme](
+            *args, derivatives=derivatives
         )
 
 
@@ -155,7 +176,16 @@ if __name__ == "__main__":
 
     r = Reaction("D+T")
     ts = np.array([10, 20, 30])
-    s = r.reactivity_integration(ts)
+
+    s = r.rate_coefficient(
+        ts,
+        scheme="analytic",
+        derivatives=True,
+    )
     print(s)
-    s = r.reactivity_analytic_fit(ts)
+    s = r.rate_coefficient(
+        ts,
+        scheme="interpolation",
+        derivatives=True,
+    )
     print(s)

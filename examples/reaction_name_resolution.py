@@ -2,7 +2,6 @@
 # by resolved to the canonical reaction names.
 from fusrate.reactionnames import name_resolver
 
-
 def resolve(s):
     print(s + " is " + name_resolver(s))
 
@@ -34,7 +33,7 @@ resolve("D+³He->a+p")
 print("")
 print(
     "Deuterium-deuterium tritium-producing "
-    "reaction canonical names: " + name_resolver("D+D→p+T")
+    "reaction canonical name: " + name_resolver("D+D→p+T")
 )
 resolve("D+D→p+T")
 resolve("D+D→T+p")
@@ -44,7 +43,7 @@ resolve("²H+²H→¹H+³H")
 print("")
 print(
     "Deuterium-deuterium helion-producing "
-    "reaction canonical names: " + name_resolver("D(d,n)3He")
+    "reaction canonical name: " + name_resolver("D(d,n)3He")
 )
 resolve("D+D→n+3He")
 resolve("D+D→3He+n")
@@ -52,7 +51,7 @@ resolve("²H+²H→n+3He")
 resolve("²H+²H→3He+n")
 
 print("")
-print("Proton-boron fusion: " + name_resolver("pB"))
+print("Proton-boron fusion canonical reaction name: " + name_resolver("pB"))
 resolve("pB")
 resolve("pB11")
 resolve("p+B")
@@ -60,3 +59,9 @@ resolve("p+B11")
 resolve("p+11B")
 resolve("p+11B→3α")
 resolve("p+11B→3 ⁴He")
+
+print("")
+print("Proton-lithium fusion canonical reaction name: " + name_resolver("pLi6"))
+resolve("pLi6")
+resolve("p + ⁶Li")
+resolve("p + Li6")

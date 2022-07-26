@@ -134,3 +134,5 @@ dmypy.json
 # Windows downloaded files
 *:Zone.Identifier
 
+# for exrc files
+.vimrc

@@ -65,6 +65,14 @@ def particle_form_to_target_form(s):
     Returns
     -------
     Canonical non-charge-specific species form
+
+    Examples
+    --------
+    >>> particle_form_to_target_form('p')
+    'H'
+
+    >>> particle_form_to_target_form('h')
+    '³He'
     """
     d = {"p": "H", "d": "D", "t": "T", "h": "³He"}
     return d[s]
@@ -105,7 +113,7 @@ def reactants(s):
 
     Returns
     -------
-    Canonical non-charge-specific species form
+    Tuple of particles in canonical non-charge-specific species form
 
     Examples
     --------

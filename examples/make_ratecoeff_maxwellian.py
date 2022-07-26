@@ -25,9 +25,9 @@ def temperature_limits(temperatures: np.array):
 def ratecoeff_data_1d(rc: ReactionCore):
     cs = ENDFCrossSection(rc, "LogLogExtrapolation")
     mwrc = RateCoefficientIntegratorMaxwellian(
-        rc, cs.cross_section, relerr=1e-8, maxeval=1e7, h=8
+        rc, cs.cross_section, relerr=1e-8, maxeval=1e7, h=25
     )
-    ratecoeff = mwrc.reactivity(temperatures)
+    ratecoeff = mwrc.ratecoeff(temperatures)
     return ratecoeff
 
 

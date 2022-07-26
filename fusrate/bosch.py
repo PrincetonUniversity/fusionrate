@@ -138,8 +138,8 @@ class BoschCrossSection:
         return r
 
 
-class BoschReactivity:
-    r"""Maxwellian-averaged reactivity for four common reactions
+class BoschRateCoeff:
+    r"""Maxwellian-averaged rate coefficients for four common reactions
 
     References
     ----------
@@ -196,14 +196,14 @@ class BoschReactivity:
         Bg = coeffs["Bg"]
         mrc2 = coeffs["mrc²"]
         c = coeffs["c"]
-        self.calculator = BoschReactivityCalc(Bg, mrc2, c)
+        self.calculator = BoschRateCoeffCalc(Bg, mrc2, c)
 
     @classmethod
     def provides_reactions(cls):
         r"""List of canonical names for reactions implemented."""
         return list(cls.COEFFICIENTS.keys())
 
-    def reactivity(self, t):
+    def ratecoeff(self, t, derivatives=False):
         r"""Rate coefficient <σv> at some temperature
 
         Assumes both species are Maxwellian with equal velocity and temperature
@@ -218,24 +218,10 @@ class BoschReactivity:
         <σv> : array_like
             cm³/s
         """
-        return self.calculator.reactivity(t)
-
-    def dreactivity_dt(self, t):
-        r"""Derivitive of rate coefficient w.r.t. temperature
-
-        Assumes both species are Maxwellian with equal velocity and temperature
-
-        Parameters
-        -----------
-        t: array_like,
-            keV, temperature
-
-        Returns
-        -------
-        <σv> : array_like
-            cm³/s
-        """
-        return self.calculator.dreactivity_dt(t)
+        if not derivatives:
+            return self.calculator.ratecoeff(t)
+        else:
+            return self.calculator.dratecoeff_dt(t)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -390,8 +376,8 @@ class BoschCrossSectionCalc:
         ) / (2 * e ** (5 / 2))
 
 
-class BoschReactivityCalc:
-    r"""Calculates Maxwell-averaged reactivity
+class BoschRateCoeffCalc:
+    r"""Calculates Maxwell-averaged rate coefficient
 
     Todo: test whether the 'optimizations' are really any faster;
     test other methods (compilation?) for speeding up.
@@ -479,12 +465,12 @@ class BoschReactivityCalc:
         d1 = (
             t
             * b
-            * (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * 5))
+            * (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * t))
             / odd_denom ** 2
         )
-        d2 = t * (c4 + 2 * c6 * t) / odd_denom
+        d2 = -t * (c4 + 2 * c6 * t) / odd_denom
         d3 = -b / odd_denom
-        return -(t / c ** 2) * (d1 - d2 - d3) + 1 / c
+        return -(t / c ** 2) * (d1 + d2 + d3) + 1 / c
 
     def hefunc(self, t):
         r"""Equation (13), specialized
@@ -543,7 +529,7 @@ class BoschReactivityCalc:
         d2 = c2 / smdenom
         return -(t / a ** 2) * (d1 - d2) + 1 / a
 
-    def reactivity(self, t):
+    def ratecoeff(self, t):
         r"""Equation (12)
 
         Parameters
@@ -564,7 +550,7 @@ class BoschReactivityCalc:
         exp_term = np.exp(-3 * ξ)
         return c1 * θ * root_term * exp_term
 
-    def dreactivity_dt(self, t):
+    def dratecoeff_dt(self, t):
         r"""Derivative of Equation (12)
 
         Parameters
@@ -589,10 +575,10 @@ class BoschReactivityCalc:
         droot_dt = -(3 / 2) * np.sqrt(ξ / mrc2) * t ** (-5 / 2)
         dexp_dξ = -3 * exp_term
 
-        term1 = c1 * dθ_dt * root_term * exp_term
-        term2 = c1 * θ * (droot_dξ * dξ_dθ * dθ_dt + droot_dt) * exp_term
-        term3 = c1 * θ * root_term * dexp_dξ * dξ_dθ * dθ_dt
-        return term1 + term2 + term3
+        term1 = dθ_dt * root_term * exp_term
+        term2 = θ * (droot_dξ * dξ_dθ * dθ_dt + droot_dt) * exp_term
+        term3 = θ * root_term * dexp_dξ * dξ_dθ * dθ_dt
+        return c1 * (term1 + term2 + term3)
 
 
 if __name__ == "__main__":
@@ -601,7 +587,23 @@ if __name__ == "__main__":
     bh = BoschCrossSection("T(d,n)4He")
     energy_range = bh.prescribed_range()
     e1 = np.logspace(*np.log10(energy_range), 500)
-    sigma = bh.cross_section(e1)
-    plt.loglog(e1, sigma)
+    #sigma = bh.cross_section(e1)
+    #plt.loglog(e1, sigma)
 
+    #plt.show()
+
+
+    bh = BoschRateCoeff("T(d,n)4He")
+    y = bh.calculator.dtfunc(e1)
+    plt.loglog(e1, y)
+
+    def fd(x, δ=1e-2):
+        δs = x * δ
+        y_plus = bh.calculator.dtfunc(x + δs)
+        y_minus = bh.calculator.dtfunc(x - δs)
+        return (y_plus - y_minus) / (2 * δs)
+
+    y = bh.calculator.dtderiv(e1)
+    plt.loglog(e1, y)
+    plt.loglog(e1, fd(e1))
     plt.show()

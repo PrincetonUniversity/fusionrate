@@ -15,6 +15,8 @@ ax.set_ylabel("Cross section/barns")
 
 
 def plot_some_data(label):
+    # Note: will change this to directly load the
+    # ENDFRateCoefficient once the rest of the name resolvers are complete
     x, y = cross_section_data(label)
     lle = LogLogExtrapolation(x, y, linear_extension=True)
 

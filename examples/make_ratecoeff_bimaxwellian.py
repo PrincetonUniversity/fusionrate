@@ -12,7 +12,7 @@ from fusrate.reactionnames import ALL_REACTIONS
 
 min_log10_temp = -2.0
 max_log10_temp = 4.0
-temperatures = np.logspace(min_log10_temp, max_log10_temp, 70)
+temperatures = np.logspace(min_log10_temp, max_log10_temp, 10)
 
 t1, t2 = np.meshgrid(temperatures, temperatures)
 
@@ -29,7 +29,7 @@ def ratecoeff_data_2d(rc: ReactionCore):
     mwrc = RateCoefficientIntegratorBiMaxwellian(
         rc, cs.cross_section, relerr=1e-6, maxeval=3e7, h=12, extramult=1e50
     )
-    ratecoeff = mwrc.reactivity(t1, t2)
+    ratecoeff = mwrc.ratecoeff(t1, t2)
     return ratecoeff
 
 
@@ -48,19 +48,19 @@ def generate_and_store_ratecoeff_data_2d(reaction: str):
 
     current_time = datetime.datetime.now().isoformat()
 
-    save_ratecoeff_hdf5(
-        canonical_name=canonical_name,
-        distribution="BiMaxwellian",
-        parameter_limits=(t_lims, t_lims),
-        parameter_units=("keV","keV"),
-        parameter_descriptions=("T_perpendicular","T_parallel"),
-        parameter_space_descriptions=("Log10", "Log10"),
-        rate_coefficients=ratecoeffs,
-        data_units="cm³/s",
-        time_generated=current_time,
-    )
+    # save_ratecoeff_hdf5(
+    #     canonical_name=canonical_name,
+    #     distribution="BiMaxwellian",
+    #     parameter_limits=(t_lims, t_lims),
+    #     parameter_units=("keV","keV"),
+    #     parameter_descriptions=("T_perpendicular","T_parallel"),
+    #     parameter_space_descriptions=("Log10", "Log10"),
+    #     rate_coefficients=ratecoeffs,
+    #     data_units="cm³/s",
+    #     time_generated=current_time,
+    # )
 
-#    plot_check_2d(temperatures, ratecoeffs)
+    plot_check_2d(temperatures, ratecoeffs)
 
 
 if __name__ == "__main__":
