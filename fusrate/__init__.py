@@ -1,1 +1,1 @@
-# Literature data for lithium vapor
+from fusrate.reaction import Reaction
