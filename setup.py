@@ -20,7 +20,6 @@ setuptools.setup(
     python_requires='>=3.10',
     install_requires=[
         "cubature >= 0.14.5",
-        "numba >= 0.56.0",
         "numpy >= 1.22.4",
         "scipy >= 1.8.1",
         "h5py >= 3.7.0",

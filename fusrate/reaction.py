@@ -11,6 +11,8 @@ INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
 INTEGRATION = "integration"
 
+ENDF = "ENDF"
+
 
 class ReactionCore:
     r"""Basic, cross-section-independent reaction data
@@ -55,43 +57,70 @@ class Reaction:
         name = self.rcore.canonical_name()
         self.name = name
 
-        self.cross_analytic_call = self._no_cross_analytic
+        self._cross_section = dict()
 
-        self.ratecoeff = dict()
+        self._cross_section[ANALYTIC] = self._no_cross_analytic
+
+        self._ratecoeff = dict()
         # Maxwellian distribution always exists
-        self.ratecoeff[Distributions.MAXW] = dict()
+        self._ratecoeff[Distributions.MAXW] = dict()
 
         # see if Bosch-Hale provides reactivity
         self.has_analytic_fit = name in BoschCrossSection.provides_reactions()
         if self.has_analytic_fit:
             self.bh_cross = BoschCrossSection(name)
-            self.cross_analytic_call = self.bh_cross.cross_section
-            b_rcf = BoschRateCoeff(name)
-            self.ratecoeff[Distributions.MAXW][ANALYTIC] = b_rcf.ratecoeff
+            self._cross_section[ANALYTIC] = self.bh_cross.cross_section
+            self.b_rcf = BoschRateCoeff(name)
+            self._ratecoeff[Distributions.MAXW][
+                ANALYTIC
+            ] = self.b_rcf.ratecoeff
 
-        self.cross_sec_interpolator = ENDFCrossSection(name).cross_section
+        self._cross_section[ENDF] = ENDFCrossSection(name).cross_section
 
         self._load_maxwellian_rate_coefficient_integrator()
         self._load_maxwellian_rate_coefficient_interpolator()
 
-        self._rcmaxinterp = self.ratecoeff[Distributions.MAXW][
-            INTERPOLATION
-        ]
+        self._rcmaxinterp = self._ratecoeff[Distributions.MAXW][INTERPOLATION]
+
+        # re-use functions from rcore
+        self.reactants = self.rcore.reactants
+        self.reactant_masses = self.rcore.reactant_masses
+        self.canonical_name = self.rcore.canonical_name
+        self.beam_target_to_com_factor = self.rcore.beam_target_to_com_factor
 
     def _load_maxwellian_rate_coefficient_integrator(self):
-        self.ratecoeff[Distributions.MAXW][
+        self._ratecoeff[Distributions.MAXW][
             INTEGRATION
         ] = RateCoefficientIntegratorMaxwellian(
-            self.rcore, self.cross_sec_interpolator
+            self.rcore, self._cross_section[ENDF]
         ).ratecoeff
 
     def _load_maxwellian_rate_coefficient_interpolator(self):
-        ratecoeff_interp_maxw = RateCoefficientInterpolator(
+        # Need to add logic for what to do if data does not exist
+        interp_maxw = RateCoefficientInterpolator(
             self.name, Distributions.MAXW
         )
-        self.ratecoeff[Distributions.MAXW][
+        self._ratecoeff[Distributions.MAXW][
             INTERPOLATION
-        ] = ratecoeff_interp_maxw.rate_coefficient
+        ] = interp_maxw.rate_coefficient
+
+    def print_available_functions(self):
+        self.print_available_cross_sections()
+        self.print_available_rate_coefficients()
+
+    def print_available_cross_sections(self):
+        print(f"Available cross sections for {self.canonical_name()}")
+        for source, method in self._cross_section.items():
+            print(f"    {source}")
+
+    def print_available_rate_coefficients(self):
+        print(
+            f"Available rate coefficient methods for {self.canonical_name()}"
+        )
+        for distribution, schemes in self._ratecoeff.items():
+            print(f"{distribution} distribution:")
+            for s, method in schemes.items():
+                print(f"    {s}")
 
     def __str__(self):
         return f"Reaction {self.canonical_name()}"
@@ -99,21 +128,7 @@ class Reaction:
     def __repr__(self):
         return f"fusrate.reaction.Reaction({self.canonical_name()})"
 
-    def canonical_name(self):
-        return self.rcore.canonical_name()
-
-    def reactants(self):
-        return self.rcore.reactants()
-
-    def reactant_masses(self):
-        return self.rcore.reactant_masses()
-
-    def beam_target_to_com_factor(self):
-        return self.rcore.beam_target_to_com_factor()
-
-    ### cross section functions
-
-    def cross_section(self, e):
+    def cross_section(self, e, scheme="ENDF", derivatives=False):
         r"""Look up the interpolated cross section from ENDF data
 
         Parameters
@@ -123,14 +138,14 @@ class Reaction:
 
         Returns
         -------
-        Cross sections in mb
+        Cross sections in millibarns, i.e. 10^(-27) cm²
         """
-        return self.cross_sec_interpolator(e)
+        return self._cross_section[scheme](e, derivatives)
 
     def _no_cross_analytic(self, *T, **kwargs):
-        r"""There is no implemented analytic formation to the reactivity.
+        r"""There is no implemented analytic formation for the cross section.
 
-        Please do not call the function reactivity_analytic, or it will throw
+        Please do not call cross_section(e, scheme="analytic"), or it will throw
         an error.
         """
         raise NotImplementedError(
@@ -166,7 +181,7 @@ rate_coefficient_x:\n"
     ):
         self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
-        return self.ratecoeff[distribution][scheme](
+        return self._ratecoeff[distribution][scheme](
             *args, derivatives=derivatives
         )
 
@@ -177,15 +192,20 @@ if __name__ == "__main__":
     r = Reaction("D+T")
     ts = np.array([10, 20, 30])
 
-    s = r.rate_coefficient(
-        ts,
-        scheme="analytic",
-        derivatives=True,
-    )
-    print(s)
-    s = r.rate_coefficient(
-        ts,
-        scheme="interpolation",
-        derivatives=True,
-    )
-    print(s)
+    cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
+    cs = r.cross_section(ts, scheme="analytic", derivatives=True)
+    print(cs)
+
+    # s = r.rate_coefficient(
+    #     ts,
+    #     scheme="analytic",
+    #     derivatives=True,
+    # )
+    # print(s)
+    # s = r.rate_coefficient(
+    #     ts,
+    #     scheme="interpolation",
+    #     derivatives=True,
+    # )
+    # print(s)
+    # r.print_available_functions()

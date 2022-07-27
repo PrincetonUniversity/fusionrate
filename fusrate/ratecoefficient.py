@@ -1,5 +1,4 @@
 from cubature import cubature
-import numba
 import numpy as np
 import scipy.interpolate
 
@@ -10,7 +9,6 @@ from fusrate.constants import Distributions
 from fusrate.load_data import load_ratecoeff_hdf5
 
 
-@numba.njit(cache=True)
 def v_th(T, m):
     r"""Thermal velocity
 
@@ -28,7 +26,6 @@ def v_th(T, m):
     return np.sqrt(keV * T / (m * amu))
 
 
-@numba.njit(cache=True)
 def reduced_mass(m1, m2):
     r"""For two interacting particles
 
@@ -73,7 +70,6 @@ def makef_simplemaxwellian(σ, m1, m2, extramult=1):
     μ = reduced_mass(m1, m2)
     leading_factor = extramult * 2 ** (7 / 2) / np.pi
 
-    @numba.njit(cache=True)
     def com_energy_keV(y1z, y2r, y2z):
         r"""Center of mass energy
 
@@ -105,11 +101,6 @@ def makef_simplemaxwellian(σ, m1, m2, extramult=1):
         Returns
         -------
         ratecoeff integrand
-
-        Notes
-        -----
-        We can't @numba.njit this function because the cross section cannot be
-        jitted.
         """
         u1z, u2r, u2z = u_array.T
 
@@ -231,7 +222,6 @@ def makef_bimaxwellian(σ, m1, m2, extramult=1):
     μ = reduced_mass(m1, m2)
     leading_factor = 2 ** (7 / 2) / np.pi ** (2) * extramult
 
-    @numba.njit(cache=True)
     def sq_norm_rel_v(y1r, y1z, y2x, y2y, y2z):
         r"""Energy-like term
 
@@ -245,7 +235,6 @@ def makef_bimaxwellian(σ, m1, m2, extramult=1):
         """
         return np.square(y1r - y2x) + np.square(y2y) + np.square(y1z - y2z)
 
-    @numba.njit(cache=True)
     def com_energy_keV(squared_normalized_relative_velocity):
         r"""Center of mass energy
 
