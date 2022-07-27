@@ -113,6 +113,25 @@ class Reaction:
         for source, method in self._cross_section.items():
             print(f"    {source}")
 
+    def loaded_distributions(self):
+        return list(self._ratecoeff.keys())
+
+    def available_distributions(self):
+        """List of distributions for which there are rate coefficients
+
+        Returns
+        -------
+        list
+
+        Examples
+        --------
+        >>> from fusrate import Reaction
+        >>> r = Reaction("D+T")
+        >>> r.available_distributions()
+        ["Maxwellian"]
+        """
+        return return self.loaded_distributions()
+
     def print_available_rate_coefficients(self):
         print(
             f"Available rate coefficient methods for {self.canonical_name()}"
@@ -194,7 +213,6 @@ if __name__ == "__main__":
 
     cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
     cs = r.cross_section(ts, scheme="analytic", derivatives=True)
-    print(cs)
 
     # s = r.rate_coefficient(
     #     ts,
