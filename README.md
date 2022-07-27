@@ -15,14 +15,19 @@ and their derivatives, as functions of temperature, for the major fusion-power r
 Usage
 =====
 
-I'm still thinking about the API; this will change.
+I'm still thinking about the API; this may change.
 
 ```
->>> from fusrate import reaction
->>> dtreaction = reaction("D+T")
->>> ratecoeff = dtreaction.maxwellian(datasource='BoschHale')
->>> t_k = 900 # Kelvin
->>> ratecoeff(t_k) # in m³/s
+>>> from fusrate import Reaction
+>>> dt = Reaction("D+T")
+>>> temperature = 10 # keV
+>>> cs = dt.cross_section(temperature)  # millibarns
+>>> rc = dt.rate_coefficient(temperature)  # in m³/s
+>>> temperatures = np.logspace(-2,4) # keV
+>>> rc = dt.rate_coefficient(temperatures)  # in m³/s
+
+# To get derivatives of rate coefficients, in  m³/s/keV
+>>> rc_derivs = dtreaction.rate_coefficient(temperature, derivatives=True)
 ```
 Also see the example scripts provided.
 
