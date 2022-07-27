@@ -91,7 +91,7 @@ class BoschCrossSection:
         r"""List of canonical reaction names"""
         return list(cls.COEFFICIENTS.keys())
 
-    def cross_section(self, e):
+    def cross_section(self, e, derivatives=False):
         r"""Cross section at some energy
 
         Parameters
@@ -103,23 +103,16 @@ class BoschCrossSection:
         -------
         σ : array_like
             mb
-        """
-        return self.calculator.cross_section(e)
 
-    def dcrosssection_de(self, e):
-        r"""Derivitive of σ w.r.t. energy
+        or
 
-        Parameters
-        -----------
-        e: array_like,
-            keV, c.o.m. energy
-
-        Returns
-        -------
         dσ_de : array_like
             mb/keV
         """
-        return self.calculator.dcrosssection_de(e)
+        if not derivatives:
+            return self.calculator.cross_section(e)
+        else:
+            return self.calculator.dcrosssection_de(e)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -264,6 +257,25 @@ class BoschHybridCrossSectionCalc:
         σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
         return σ
 
+    def dcrosssection_de(self, e):
+        r"""Equation (8)
+
+        Parameters
+        ----------
+        e : array_like
+            keV, c.o.m. energy
+
+        Returns
+        -------
+        dσ_de: array_like
+           cm² / keV
+        """
+        is_lower = e <= self.transition_energy
+        σ_lower = self.lower_calc.dcrosssection_de(e)
+        σ_upper = self.upper_calc.dcrosssection_de(e)
+        σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
+        return σ
+
 
 class BoschCrossSectionCalc:
     r"""Calculates cross sections of the Bosch-Hale type"""
@@ -334,7 +346,7 @@ class BoschCrossSectionCalc:
         term1 = (
             -(b1 + e * ds1 + e * (ds1 + e * (b3 + 2 * b4 * e)))
             * numer
-            / denom ** 2
+            / denom**2
         )
         term2 = a2 + e * ns1 + e * (ns1 + e * (a4 + 2 * a5 * e)) / denom
         return term1 + term2
@@ -372,7 +384,7 @@ class BoschCrossSectionCalc:
         exp_term = np.exp(-self.bg / np.sqrt(e))
         exp_term * (
             (self.bg - 2 * e ** (1 / 2)) * self.s(e)
-            + 2 * e ** (3 / 2) * ds_de(e)
+            + 2 * e ** (3 / 2) * self.ds_de(e)
         ) / (2 * e ** (5 / 2))
 
 
@@ -390,7 +402,7 @@ class BoschRateCoeffCalc:
     """
 
     def __init__(self, bg, mrc2, cd):
-        self.bg2 = bg ** 2
+        self.bg2 = bg**2
         self.mrc2 = mrc2
         self.c1 = cd[0]
         self.c2 = cd[1]
@@ -466,11 +478,11 @@ class BoschRateCoeffCalc:
             t
             * b
             * (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * t))
-            / odd_denom ** 2
+            / odd_denom**2
         )
         d2 = -t * (c4 + 2 * c6 * t) / odd_denom
         d3 = -b / odd_denom
-        return -(t / c ** 2) * (d1 + d2 + d3) + 1 / c
+        return -(t / c**2) * (d1 + d2 + d3) + 1 / c
 
     def hefunc(self, t):
         r"""Equation (13), specialized
@@ -497,10 +509,10 @@ class BoschRateCoeffCalc:
         smdenom = 1 + t * (c3 + c5 * t)
         a = c2 + c4 * t
         b = 1 - t * a / smdenom
-        d1 = t * a * (c3 + 2 * c5 * t) / smdenom ** 2
+        d1 = t * a * (c3 + 2 * c5 * t) / smdenom**2
         d2 = c4 * t / smdenom
         d3 = a / smdenom
-        return -(t / b ** 2) * (d1 - d2 - d3) + 1 / b
+        return -(t / b**2) * (d1 - d2 - d3) + 1 / b
 
     def ddfunc(self, t):
         r"""Equation (13), specialized
@@ -525,9 +537,9 @@ class BoschRateCoeffCalc:
         c5 = self.c5
         smdenom = 1 + t * (c3 + c5 * t)
         a = 1 - c2 * t / smdenom
-        d1 = c2 * t * (c3 + 2 * c5 + t) / smdenom ** 2
+        d1 = c2 * t * (c3 + 2 * c5 + t) / smdenom**2
         d2 = c2 / smdenom
-        return -(t / a ** 2) * (d1 - d2) + 1 / a
+        return -(t / a**2) * (d1 - d2) + 1 / a
 
     def ratecoeff(self, t):
         r"""Equation (12)
@@ -546,7 +558,7 @@ class BoschRateCoeffCalc:
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t ** 3))
+        root_term = np.sqrt(ξ / (mrc2 * t**3))
         exp_term = np.exp(-3 * ξ)
         return c1 * θ * root_term * exp_term
 
@@ -567,7 +579,7 @@ class BoschRateCoeffCalc:
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t ** 3))
+        root_term = np.sqrt(ξ / (mrc2 * t**3))
         exp_term = np.exp(-3 * ξ)
         dθ_dt = self.dtheta(t)
         dξ_dθ = self.dxi_dtheta(θ)
@@ -587,23 +599,7 @@ if __name__ == "__main__":
     bh = BoschCrossSection("T(d,n)4He")
     energy_range = bh.prescribed_range()
     e1 = np.logspace(*np.log10(energy_range), 500)
-    #sigma = bh.cross_section(e1)
-    #plt.loglog(e1, sigma)
+    sigma = bh.cross_section(e1)
+    plt.loglog(e1, sigma)
 
-    #plt.show()
-
-
-    bh = BoschRateCoeff("T(d,n)4He")
-    y = bh.calculator.dtfunc(e1)
-    plt.loglog(e1, y)
-
-    def fd(x, δ=1e-2):
-        δs = x * δ
-        y_plus = bh.calculator.dtfunc(x + δs)
-        y_minus = bh.calculator.dtfunc(x - δs)
-        return (y_plus - y_minus) / (2 * δs)
-
-    y = bh.calculator.dtderiv(e1)
-    plt.loglog(e1, y)
-    plt.loglog(e1, fd(e1))
     plt.show()
