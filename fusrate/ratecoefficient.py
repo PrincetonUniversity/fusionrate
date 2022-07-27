@@ -7,38 +7,8 @@ from fusrate.constants import kiloelectronvolt as keV
 from fusrate.constants import millibarn_meters_squared_to_cubic_centimeter
 from fusrate.constants import Distributions
 from fusrate.load_data import load_ratecoeff_hdf5
-
-
-def v_th(T, m):
-    r"""Thermal velocity
-
-    Parameters
-    ----------
-    T : array_like,
-        Temperature in keV
-    m : array_like,
-        mass in amu
-
-    Returns
-    -------
-    velocity in m/s
-    """
-    return np.sqrt(keV * T / (m * amu))
-
-
-def reduced_mass(m1, m2):
-    r"""For two interacting particles
-
-    Parameters
-    ----------
-    m1, m2 : float
-
-    Returns
-    -------
-    float
-    """
-    μ = m1 * m2 / (m1 + m2)
-    return μ
+from fusrate.physics import reduced_mass
+from fusrate.physics import v_th
 
 
 # This is my velocity-based implementation
@@ -399,8 +369,7 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
 
 
 class RateCoefficientInterpolator:
-    r"""Loads a rate coefficient interpolator
-    """
+    r"""Loads a rate coefficient interpolator"""
 
     def __init__(self, canonical_name, distribution):
         dset = load_ratecoeff_hdf5(canonical_name, distribution)
@@ -418,8 +387,7 @@ class RateCoefficientInterpolator:
 
 
 class HDFRateCoefficientInterpolator:
-    """Interpolate data based on an hdf5 dataset
-    """
+    """Interpolate data based on an hdf5 dataset"""
 
     def __init__(self, dataset):
         r"""
