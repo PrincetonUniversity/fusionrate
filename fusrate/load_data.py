@@ -12,14 +12,15 @@ CROSS_SECTION_FILETYPE = ".csv"
 RATE_COEFFICIENT_DSET = "rate_coefficients"
 
 
-def locate_data_file(dname):
+def locate_data_file(dname: str):
     if resources.is_resource(DEFAULT_DATA_DIR, dname):
         with resources.path(DEFAULT_DATA_DIR, dname) as f:
             return f
     else:
         raise FileNotFoundError(dname + " not found in data directory.")
 
-def load_data_file(dname):
+
+def load_data_file(dname: str):
     r"""Loads a 2-column csv file"""
     path = locate_data_file(dname)
     return np.loadtxt(path, delimiter=",").T
@@ -40,7 +41,7 @@ def ratecoeff_filename(canonical_reaction_name: str, distribution: str) -> str:
     return f"{RATE_COEFF_PREFIX}{s}_{distribution}"
 
 
-def cross_section_data(canonical_reaction_name):
+def cross_section_data(canonical_reaction_name: str):
     """Loads data from file
 
     Parameters
@@ -62,17 +63,19 @@ def cross_section_data(canonical_reaction_name):
     filename = cross_section_filename(canonical_reaction_name)
     return load_data_file(filename)
 
-def load_ratecoeff_hdf5(canonical_name, distribution):
+
+def load_ratecoeff_hdf5(canonical_name: str, distribution: str):
     reaction_filename = ratecoeff_filename(canonical_name, distribution)
     dname = reaction_filename + ".hdf5"
     with resources.path(DEFAULT_DATA_DIR, dname) as f:
-        hdf = h5py.File(f, 'r')
+        hdf = h5py.File(f, "r")
         dset = hdf[RATE_COEFFICIENT_DSET]
         return dset
 
+
 def save_ratecoeff_hdf5(
-    canonical_name,
-    distribution,
+    canonical_name: str,
+    distribution: str,
     parameter_limits,
     parameter_units,
     parameter_descriptions,

@@ -16,6 +16,7 @@ temperatures = np.logspace(min_log10_temp, max_log10_temp, 10)
 
 t1, t2 = np.meshgrid(temperatures, temperatures)
 
+
 def temperature_limits(temperatures: np.array):
     return (
         min_log10_temp,

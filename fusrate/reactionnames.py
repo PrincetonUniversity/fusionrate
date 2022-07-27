@@ -29,7 +29,7 @@ ALL_REACTIONS = [
 ]
 
 
-def target_species(s):
+def target_species(s: str):
     r"""Name of reaction target species
     Parameters
     ----------
@@ -51,7 +51,7 @@ def target_species(s):
     return s.split("(")[0]
 
 
-def particle_form_to_target_form(s):
+def particle_form_to_target_form(s: str):
     r"""For supported species only
 
     These species appear in the canonical reaction names.
@@ -78,7 +78,7 @@ def particle_form_to_target_form(s):
     return d[s]
 
 
-def beam_species(s):
+def beam_species(s: str):
     r"""Name of reaction beam species
 
     Parameters
@@ -103,7 +103,7 @@ def beam_species(s):
     return particle_form_to_target_form(beam_sp)
 
 
-def reactants(s):
+def reactants(s: str):
     r"""Names of beam, target species
 
     Parameters
@@ -128,7 +128,7 @@ def reactants(s):
     return beam, target
 
 
-def name_resolver(reaction_raw_name):
+def name_resolver(reaction_raw_name: str):
     r"""Recognize a canonical fusion reaction
 
     The name resolver aims to recognize the common fusion reactions
@@ -186,7 +186,8 @@ def name_resolver(reaction_raw_name):
         )
 
 
-def reaction_name_simplify(reaction_name_raw):
+def reaction_name_simplify(reaction_name_raw: str):
+    """Convert special characters to a standard form for matching"""
     s = reaction_name_raw.replace(" ", "")
     s = s.replace("¹", "1")
     s = s.replace("²", "2")
@@ -200,7 +201,7 @@ def reaction_name_simplify(reaction_name_raw):
     return s
 
 
-def reaction_name_to_endf(canonical_reaction_name):
+def reaction_name_to_endf(canonical_reaction_name: str):
     s = canonical_reaction_name
     s = s.replace("4He", "a")
     s = s.replace("3He", "h")
@@ -275,7 +276,9 @@ def proton_lithium_name_resolver(reaction_raw_name):
     )
 
 
-def bosch_name_resolver(reaction_raw_name):
+# this could be re-worked to use a dict so that you don't need to loop over all
+# the entries in sequence.
+def bosch_name_resolver(reaction_raw_name: str):
     DT_NAMES = [DT_NAME, "DT", "D+T", "D+T→n+α", "D+T→α+n"]
 
     DHE3_NAMES = [
@@ -309,21 +312,10 @@ def bosch_name_resolver(reaction_raw_name):
 
     reaction_name = reaction_name_simplify(reaction_raw_name)
 
-    for n in DT_NAMES:
-        if reaction_name == reaction_name_simplify(n):
-            return DT_NAME
-
-    for n in DHE3_NAMES:
-        if reaction_name == reaction_name_simplify(n):
-            return DHE3_NAME
-
-    for n in DDHE3_NAMES:
-        if reaction_name == reaction_name_simplify(n):
-            return DDHE3_NAME
-
-    for n in DDT_NAMES:
-        if reaction_name == reaction_name_simplify(n):
-            return DDT_NAME
+    for name_collection in [DT_NAMES, DHE3_NAMES, DDHE3_NAMES, DDT_NAMES]:
+        for n in name_collection:
+            if reaction_name == reaction_name_simplify(n):
+                return name_collection[0]
 
     raise ValueError(
         f"""

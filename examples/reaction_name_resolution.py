@@ -2,6 +2,7 @@
 # by resolved to the canonical reaction names.
 from fusrate.reactionnames import name_resolver
 
+
 def resolve(s):
     print(s + " is " + name_resolver(s))
 

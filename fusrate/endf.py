@@ -31,7 +31,7 @@ class LogLogExtrapolation:
             last_two = data[-2:]
             last = last_two[-1]
             Δ = last_two[-1] - last_two[-2]
-            subsequent_points = last + np.outer(range(1,4), Δ)
+            subsequent_points = last + np.outer(range(1, 4), Δ)
             self.data = np.append(data, subsequent_points, axis=0)
         else:
             self.data = data

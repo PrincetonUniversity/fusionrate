@@ -17,6 +17,7 @@ fig, ax = plt.subplots(1, 1)
 
 meters_cubed_in_cm_cubed = 1e6
 
+
 def plot_comparison(reaction):
     sv = BoschRateCoeff(reaction)
     t_range = sv.prescribed_range()
@@ -30,6 +31,7 @@ def plot_comparison(reaction):
     y_b = sv.ratecoeff(t) / meters_cubed_in_cm_cubed
     y_i = interp.rate_coefficient(t) / meters_cubed_in_cm_cubed
     ax.plot(x, y_i/y_b, label=reaction, ls=line_styles[i])
+
 
 reactions = ["T(d,n)⁴He", "³He(d,p)⁴He", "D(d,n)³He", "D(d,p)T"]
 for i, reaction in enumerate(reactions):

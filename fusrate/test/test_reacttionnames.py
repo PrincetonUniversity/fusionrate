@@ -9,6 +9,7 @@ from fusrate.reactionnames import PB11_NAME
 
 import unittest
 
+
 class TestReactionNameParsing(unittest.TestCase):
     PROT = 'H'
     DEU = 'D'
@@ -61,6 +62,7 @@ class TestReactionNameParsing(unittest.TestCase):
 
     def test_b6(self):
         assert self.PROT == rn.beam_species(PB11_NAME)
+
 
 class TestBoschReactionNameResolver(unittest.TestCase):
     def test_DT_0(self):
@@ -150,6 +152,7 @@ class TestBoschReactionNameResolver(unittest.TestCase):
     def test_bad_name(self):
         self.assertRaises(ValueError, rn.bosch_name_resolver, "bad")
 
+
 class TestProtonBoronNameResolver(unittest.TestCase):
     def test_pb_0(self):
         assert PB11_NAME == rn.proton_boron_name_resolver(PB11_NAME)
@@ -163,6 +166,7 @@ class TestProtonBoronNameResolver(unittest.TestCase):
     def test_pb_3(self):
         assert PB11_NAME == rn.proton_boron_name_resolver("p+¹¹B")
 
+
 class TestProtonLithiumNameResolver(unittest.TestCase):
     def test_pli_0(self):
         assert PLI6_NAME == rn.proton_lithium_name_resolver(PLI6_NAME)
@@ -172,6 +176,7 @@ class TestProtonLithiumNameResolver(unittest.TestCase):
 
     def test_pli_2(self):
         assert PLI6_NAME == rn.proton_lithium_name_resolver("p+⁶Li->⁴He+³He")
+
 
 if __name__ == "__main__":
     unittest.main()
