@@ -1,4 +1,3 @@
-import numba
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
 
@@ -32,7 +31,7 @@ class LogLogExtrapolation:
             last_two = data[-2:]
             last = last_two[-1]
             Δ = last_two[-1] - last_two[-2]
-            subsequent_points = last + np.outer([1, 2, 3], Δ)
+            subsequent_points = last + np.outer(range(1,4), Δ)
             self.data = np.append(data, subsequent_points, axis=0)
         else:
             self.data = data
@@ -58,67 +57,8 @@ class LogLogExtrapolation:
         return np.exp(log_newy)
 
 
-class LogLogReinterpolation:
-    r"""Re-sampled LogLogExtrapolation
-
-    This creates an interpolation function with a consistent spacing (in log-x
-    space), which allows using the np.interp function. The latter is useful
-    because it can be 'jit-compiled' using numba.
-    """
-    SMALL = 1e-50  # barns
-    LOWBOUND = 0.010  # keV
-    HIGHBOUND = 4e4  # keV
-    NUM_REMESH = 6000
-
-    def __init__(self, x, y, linear_extension=True, num_remesh=None):
-        r"""
-        x: array_like
-        y: array_like
-        """
-        if num_remesh is not None:
-            self.NUM_REMESH = num_remesh
-        self.remeshed_logx = self._remeshed_log_x()
-
-        lle = LogLogExtrapolation(x, y, linear_extension)
-        self.remeshed_logy = lle.interpolator(self.remeshed_logx)
-
-    def _remeshed_log_x(self):
-        return np.linspace(
-            np.log(self.LOWBOUND), np.log(self.HIGHBOUND), self.NUM_REMESH
-        )
-
-    def __call__(self, newx):
-        r"""Generate new values
-        newx: array_like,
-            energies in eV.
-            Whether this is beam-target energy or c.o.m. energy
-            is up to the data.
-        """
-        log_new = np.log(newx)
-        log_newy = np.interp(
-            log_new,
-            self.remeshed_logx,
-            self.remeshed_logy,
-            right=np.log10(self.SMALL),
-        )
-        return np.exp(log_newy)
-
-    def make_jitfunction(self):
-        small = self.SMALL
-        remesh_logx = self.remeshed_logx
-        remesh_logy = self.remeshed_logy
-
-        @numba.njit(cache=True, fastmath=True)
-        def logloginterp(newx):
-            log_new = np.log(newx + small)
-            log_newy = np.interp(log_new, remesh_logx, remesh_logy)
-            return np.exp(log_newy)
-
-        return logloginterp
-
-
 class ENDFCrossSection:
-    def __init__(self, r, interpolation="LogLogExtrapolation"):
+    def __init__(self, r):
         r"""
         s: reaction name string
         """
@@ -146,23 +86,12 @@ class ENDFCrossSection:
         y = y_raw * 1e3
 
         self.x = x
-
-        if interpolation == "LogLogExtrapolation":
-            self.interp = LogLogExtrapolation(x, y, linear_extension=True)
-        elif interpolation == "LogLogReinterpolation":
-            interp_source = LogLogReinterpolation(x, y, linear_extension=True)
-            self.interp = interp_source.make_jitfunction()
-        else:
-            raise ValueError(
-                f"Unknown interpolation type {interpolation}."
-                "Allowed values are LogLogExtrapolation and"
-                "LogLogReinterpolation."
-            )
+        self.interp = LogLogExtrapolation(x, y, linear_extension=True)
 
     def __call__(self, e):
         return self.cross_section(e)
 
-    def cross_section(self, e):
+    def cross_section(self, e, derivatives=False):
         r"""Look up the cross section from ENDF data
         Parameters
         ----------
@@ -171,7 +100,7 @@ class ENDFCrossSection:
 
         Returns
         -------
-        Cross sections in mb
+        Cross sections in millibarns
         """
         return self.interp(e)
 
@@ -189,12 +118,8 @@ if __name__ == "__main__":
     from fusrate.load_data import load_data_file
 
     endf = ENDFCrossSection("D+T")
-    llr = ENDFCrossSection("D+T", interpolation="LogLogReinterpolation")
 
     newx = np.logspace(0, 3, 100)
 
-    print(llr.prescribed_range())
-
     plt.loglog(newx, endf(newx))
-    plt.loglog(newx, llr(newx))
     plt.show()
