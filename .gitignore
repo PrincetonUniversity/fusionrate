@@ -136,3 +136,6 @@ dmypy.json
 
 # for exrc files
 .vimrc
+
+# for hdf5 files. These should not be stored.
+*.hdf5
