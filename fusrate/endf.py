@@ -42,6 +42,8 @@ class LogLogExtrapolation:
             self.logx, self.logy, k=2, ext=0
         )
 
+        self._derivinterp = None
+
     def __call__(self, newx):
         r"""Generate new values
 
@@ -55,6 +57,22 @@ class LogLogExtrapolation:
         log_new = np.log(newx + self.SMALL)
         log_newy = self.interpolator(log_new)
         return np.exp(log_newy)
+
+    def _ensure_derivatives(self):
+        if not self._derivinterp:
+            self._derivinterp = self.interpolator.derivative(n=1)
+
+    def derivatives(self, newx):
+        self._ensure_derivatives()
+        log_newx = np.log(newx + self.SMALL)
+        log_newy = self.interpolator(log_newx)
+        val = np.exp(log_newy)
+
+        log_newy_prime = self._derivinterp(log_newx)
+
+        return val * log_newy_prime / newx
+
+
 
 
 class ENDFCrossSection:
@@ -102,7 +120,10 @@ class ENDFCrossSection:
         -------
         Cross sections in millibarns
         """
-        return self.interp(e)
+        if derivatives:
+            return self.interp.derivatives(e)
+        else:
+            return self.interp(e)
 
     def prescribed_range(self):
         r"""
