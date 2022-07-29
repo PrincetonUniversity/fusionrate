@@ -3,9 +3,13 @@ from fusrate.bosch import BoschCrossSection
 from fusrate.bosch import BoschRateCoeff
 from fusrate.endf import ENDFCrossSection
 from fusrate.ion_data import ion_mass
+from fusrate.ratecoefficient import RateCoefficientIntegratorBiMaxwellian
 from fusrate.ratecoefficient import RateCoefficientIntegratorMaxwellian
 from fusrate.ratecoefficient import RateCoefficientInterpolator
 from fusrate.constants import Distributions
+from fusrate.load_data import ratecoeff_data_exists
+
+import numpy as np
 
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
@@ -59,9 +63,12 @@ class Reaction:
 
         self._cross_section = dict()
 
+        # everyone gets an ENDF cross section
+        self._cross_section[ENDF] = ENDFCrossSection(name).cross_section
         self._cross_section[ANALYTIC] = self._no_cross_analytic
 
         self._ratecoeff = dict()
+
         # Maxwellian distribution always exists
         self._ratecoeff[Distributions.MAXW] = dict()
 
@@ -75,11 +82,11 @@ class Reaction:
                 ANALYTIC
             ] = self.b_rcf.ratecoeff
 
-        self._cross_section[ENDF] = ENDFCrossSection(name).cross_section
+        self._load_maxwellian_ratecoeff_integrator()
+        self._load_maxwellian_ratecoeff_interpolator()
 
-        self._load_maxwellian_rate_coefficient_integrator()
-        self._load_maxwellian_rate_coefficient_interpolator()
-
+        # quick fast hidden function
+        # I should make a function to return specific functions better
         self._rcmaxinterp = self._ratecoeff[Distributions.MAXW][INTERPOLATION]
 
         # re-use functions from rcore
@@ -88,14 +95,38 @@ class Reaction:
         self.canonical_name = self.rcore.canonical_name
         self.beam_target_to_com_factor = self.rcore.beam_target_to_com_factor
 
-    def _load_maxwellian_rate_coefficient_integrator(self):
+        self._load_bimaxwellian_ratecoeff()
+
+    # gross, not scalable, should be replaced
+    def _load_bimaxwellian_ratecoeff(self):
+        self._ratecoeff[Distributions.BIMAXW] = dict()
+        self._load_bimaxwellian_ratecoeff_integrator()
+        self._load_bimaxwellian_ratecoeff_interpolator()
+
+    def _load_bimaxwellian_ratecoeff_integrator(self):
+        self._ratecoeff[Distributions.BIMAXW][
+            INTEGRATION
+        ] = RateCoefficientIntegratorBiMaxwellian(
+            self.rcore, self._cross_section[ENDF]
+        ).ratecoeff
+
+    def _load_bimaxwellian_ratecoeff_interpolator(self):
+        if ratecoeff_data_exists(self.canonical_name(), Distributions.BIMAXW):
+            interp_bimaxw = RateCoefficientInterpolator(
+                self.name, Distributions.BIMAXW
+            )
+            self._ratecoeff[Distributions.BIMAXW][
+                INTERPOLATION
+            ] = interp_bimaxw.rate_coefficient
+
+    def _load_maxwellian_ratecoeff_integrator(self):
         self._ratecoeff[Distributions.MAXW][
             INTEGRATION
         ] = RateCoefficientIntegratorMaxwellian(
             self.rcore, self._cross_section[ENDF]
         ).ratecoeff
 
-    def _load_maxwellian_rate_coefficient_interpolator(self):
+    def _load_maxwellian_ratecoeff_interpolator(self):
         # Need to add logic for what to do if data does not exist
         interp_maxw = RateCoefficientInterpolator(
             self.name, Distributions.MAXW
@@ -130,7 +161,7 @@ class Reaction:
         >>> r.available_distributions()
         ["Maxwellian"]
         """
-        return return self.loaded_distributions()
+        return self.loaded_distributions()
 
     def print_available_rate_coefficients(self):
         print(
@@ -148,17 +179,27 @@ class Reaction:
         return f"fusrate.reaction.Reaction({self.canonical_name()})"
 
     def cross_section(self, e, scheme="ENDF", derivatives=False):
-        r"""Look up the interpolated cross section from ENDF data
+        r"""Get interpolated (or analytic) cross sections
 
         Parameters
         ----------
         e : array_like,
           energies in keV
 
+        scheme : ['ENDF', 'analytic']
+
+        derivatives : bool
+            Whether or not to return derivatives
+
         Returns
         -------
         Cross sections in millibarns, i.e. 10^(-27) cm²
+
+        or
+
+        The derivative w.r.t. energy, in mb/keV
         """
+        e = np.asarray(e)
         return self._cross_section[scheme](e, derivatives)
 
     def _no_cross_analytic(self, *T, **kwargs):
@@ -197,11 +238,42 @@ rate_coefficient_x:\n"
         distribution=Distributions.MAXW,
         scheme=INTERPOLATION,
         derivatives=False,
+        **kwargs,
     ):
+        """Interpolated, analytic, or live-integrated rate coefficients
+
+        Parameters
+        ----------
+        *args : one or more array_like
+            Parameters, often temperatures in keV, describing the distribution
+
+        distribution : str
+            One of the registered distribution function names.
+
+        scheme : ['integration', 'interpolation', 'analytic']
+            'analytic' is available only for certain reactions
+            but can be even faster than interpolation
+
+            'integration' performs an integration using the distribution's
+            integrator function. This is the slowest method.
+
+            'interpolation' uses pre-computed tables to look up data
+
+        derivatives : bool
+            Return derivatives of the value w.r.t. each of the parameters
+
+        Returns
+        -------
+        σv in cm³/s or its derivatives w.r.t. the parameters, i.e. in cm³/s/keV
+        """
         self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
+        args = np.asarray(args)
+
         return self._ratecoeff[distribution][scheme](
-            *args, derivatives=derivatives
+            *args,
+            derivatives=derivatives,
+            **kwargs,
         )
 
 
@@ -226,4 +298,4 @@ if __name__ == "__main__":
     #     derivatives=True,
     # )
     # print(s)
-    # r.print_available_functions()
+    r.print_available_functions()
