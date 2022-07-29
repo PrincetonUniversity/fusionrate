@@ -301,6 +301,11 @@ class RateCoefficientIntegratorMaxwellian(RateCoefficientIntegrator):
         T : array_like,
             Temperatures in keV
 
+        **kwargs :
+            Named arguments are ignored.
+            Is a dump for parameters like 'derivatives',
+            which are not yet supported
+
         Returns
         -------
         array_like of rate coefficients, cm³/s
@@ -331,7 +336,7 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
             rcore, σ, makef_bimaxwellian, relerr, maxeval, h, extramult
         )
 
-    def ratecoeff(self, T_perp, T_par):
+    def ratecoeff(self, T_perp, T_par, **kwargs):
         r"""Rate coefficent
 
         Parameters
@@ -341,6 +346,11 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
 
         T_parallel : array_like,
             Temperatures in keV.
+
+        **kwargs :
+            Named arguments are ignored.
+            Is a dump for parameters like 'derivatives',
+            which are not yet supported
 
         Returns
         -------
@@ -455,7 +465,7 @@ class OneDHDFRateCoefficientInterpolator(HDFRateCoefficientInterpolator):
             return val * interp_prime / temperatures
 
 
-class TwoDHDFRateCoefficientInterpolator:
+class TwoDHDFRateCoefficientInterpolator(HDFRateCoefficientInterpolator):
     def __init__(self, dataset):
         r"""
         Parameters
@@ -468,7 +478,11 @@ class TwoDHDFRateCoefficientInterpolator:
         )
 
     def rate_coefficient(
-        self, perp_temperatures, parallel_temperatures, grid=False
+        self,
+        perp_temperatures,
+        parallel_temperatures,
+        grid=False,
+        derivatives=False,
     ):
         """Get a rate coefficient via interpolation
 
