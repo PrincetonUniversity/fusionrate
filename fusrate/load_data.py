@@ -9,6 +9,7 @@ DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
 RATE_COEFF_PREFIX = "rate_coefficient_"
 CROSS_SECTION_FILETYPE = ".csv"
+INTERPOLATION_FILETYPE = ".hdf5"
 RATE_COEFFICIENT_DSET = "rate_coefficients"
 
 
@@ -30,6 +31,10 @@ def cross_section_filename(canonical_reaction_name):
     s = reaction_filename_part(canonical_reaction_name)
     return f"{CROSS_SECTION_PREFIX}{s}{CROSS_SECTION_FILETYPE}"
 
+def ratecoeff_data_exists(canonical_reaction_name: str, distribution: str):
+    dname = ratecoeff_filename(canonical_reaction_name, distribution)
+    dname = dname + INTERPOLATION_FILETYPE
+    return resources.is_resource(DEFAULT_DATA_DIR, dname)
 
 def ratecoeff_filename(canonical_reaction_name: str, distribution: str) -> str:
     r"""
@@ -66,7 +71,7 @@ def cross_section_data(canonical_reaction_name: str):
 
 def load_ratecoeff_hdf5(canonical_name: str, distribution: str):
     reaction_filename = ratecoeff_filename(canonical_name, distribution)
-    dname = reaction_filename + ".hdf5"
+    dname = reaction_filename + INTERPOLATION_FILETYPE
     with resources.path(DEFAULT_DATA_DIR, dname) as f:
         hdf = h5py.File(f, "r")
         dset = hdf[RATE_COEFFICIENT_DSET]
