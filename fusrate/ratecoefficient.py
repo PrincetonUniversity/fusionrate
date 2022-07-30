@@ -385,9 +385,9 @@ class RateCoefficientInterpolator:
         dset = load_ratecoeff_hdf5(canonical_name, distribution)
         match distribution:
             case Distributions.MAXW:
-                rci = OneDHDFRateCoefficientInterpolator(dset)
+                rci = OneDHdfRateCoefficientInterpolator(dset)
             case Distributions.BIMAXW:
-                rci = TwoDHDFRateCoefficientInterpolator(dset)
+                rci = TwoDHdfRateCoefficientInterpolator(dset)
             case _:
                 raise ValueError(
                     f"Distribution {distribution} not recognized."
@@ -396,7 +396,7 @@ class RateCoefficientInterpolator:
         self.rate_coefficient = rci.rate_coefficient
 
 
-class HDFRateCoefficientInterpolator:
+class HdfRateCoefficientInterpolator:
     """Interpolate data based on an hdf5 dataset"""
 
     def __init__(self, dataset):
@@ -430,7 +430,7 @@ class HDFRateCoefficientInterpolator:
         self.log_data = np.log10(self.raw_data)
 
 
-class OneDHDFRateCoefficientInterpolator(HDFRateCoefficientInterpolator):
+class OneDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
     def __init__(self, dataset):
         super().__init__(dataset)
         self.interp = scipy.interpolate.InterpolatedUnivariateSpline(
@@ -465,7 +465,7 @@ class OneDHDFRateCoefficientInterpolator(HDFRateCoefficientInterpolator):
             return val * interp_prime / temperatures
 
 
-class TwoDHDFRateCoefficientInterpolator(HDFRateCoefficientInterpolator):
+class TwoDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
     def __init__(self, dataset):
         r"""
         Parameters
