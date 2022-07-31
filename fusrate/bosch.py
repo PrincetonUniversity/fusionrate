@@ -91,7 +91,7 @@ class BoschCrossSection:
         r"""List of canonical reaction names"""
         return list(cls.COEFFICIENTS.keys())
 
-    def cross_section(self, e, derivatives=False):
+    def cross_section(self, e):
         r"""Cross section at some energy
 
         Parameters
@@ -103,16 +103,23 @@ class BoschCrossSection:
         -------
         σ : array_like
             mb
+        """
+        return self.calculator.cross_section(e)
 
-        or
+    def derivative(self, e):
+        r"""Derivative w.r.t. energy of cross section
 
+        Parameters
+        -----------
+        e: array_like,
+            keV, energy
+
+        Returns
+        -------
         dσ_de : array_like
             mb/keV
         """
-        if not derivatives:
-            return self.calculator.cross_section(e)
-        else:
-            return self.calculator.dcrosssection_de(e)
+        return self.calculator.dcrosssection_de(e)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -196,7 +203,7 @@ class BoschRateCoeff:
         r"""List of canonical names for reactions implemented."""
         return list(cls.COEFFICIENTS.keys())
 
-    def ratecoeff(self, t, derivatives=False):
+    def rate_coefficient(self, t):
         r"""Rate coefficient <σv> at some temperature
 
         Assumes both species are Maxwellian with equal velocity and temperature
@@ -211,10 +218,24 @@ class BoschRateCoeff:
         <σv> : array_like
             cm³/s
         """
-        if not derivatives:
-            return self.calculator.ratecoeff(t)
-        else:
-            return self.calculator.dratecoeff_dt(t)
+        return self.calculator.ratecoeff(t)
+
+    def derivative(self, t):
+        r"""Derivative of rate coefficient <σv>
+
+        Assumes both species are Maxwellian with equal velocity and temperature
+
+        Parameters
+        -----------
+        t: array_like,
+            keV, temperature
+
+        Returns
+        -------
+        d<σv>/dTemperature : array_like
+            cm³/s/keV
+        """
+        return self.calculator.dratecoeff_dt(t)
 
     def canonical_reaction_name(self):
         return self.reaction_name

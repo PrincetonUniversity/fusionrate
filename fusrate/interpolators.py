@@ -152,7 +152,6 @@ class TwoDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
         perp_temperatures,
         parallel_temperatures,
         grid=False,
-        derivatives=False,
     ):
         """Get a rate coefficient via interpolation
 
@@ -182,6 +181,8 @@ class TwoDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
         )
         return np.power(10, log_z.T)
 
+    def derivative(self, perp_temperatures, parallel_temperatures, grid=False):
+        pass
 
 rate_coefficient_interpolator_factory = RateCoeffInterpolatorFactory()
 
