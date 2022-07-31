@@ -73,8 +73,6 @@ class LogLogExtrapolation:
         return val * log_newy_prime / newx
 
 
-
-
 class ENDFCrossSection:
     def __init__(self, r):
         r"""
@@ -90,7 +88,7 @@ class ENDFCrossSection:
 
             self.bt_to_com = m_tar / (m_beam + m_tar)
         else:
-            name = r.name
+            name = r.canonical_name
             self.bt_to_com = r.bt_to_com
 
         self.canonical_reaction_name = name
