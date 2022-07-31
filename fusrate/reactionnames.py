@@ -3,7 +3,7 @@ DHE3_NAME = "³He(d,p)⁴He"
 DDT_NAME = "D(d,p)T"
 DDHE3_NAME = "D(d,n)³He"
 
-PLI6_NAME = "⁶Li(p,α)³He"
+PLI6_NAME = "⁶Li(p,h)⁴He"
 PB11_NAME = "¹¹B(p,α)2⁴He"
 
 TT_NAME = "T(t,2n)⁴He"
