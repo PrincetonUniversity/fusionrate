@@ -3,8 +3,7 @@ from fusrate.bosch import BoschCrossSection
 from fusrate.bosch import BoschRateCoeff
 from fusrate.endf import ENDFCrossSection
 from fusrate.ion_data import ion_mass
-from fusrate.integrators import RateCoefficientIntegratorBiMaxwellian
-from fusrate.integrators import RateCoefficientIntegratorMaxwellian
+from fusrate.integrators import rate_coefficient_integrator_factory
 from fusrate.interpolators import RateCoefficientInterpolator
 from fusrate.constants import Distributions
 from fusrate.load_data import ratecoeff_data_exists
@@ -17,6 +16,29 @@ INTEGRATION = "integration"
 
 ENDF = "ENDF"
 
+FUNC = "function"
+DERIV = "derivative"
+PARAMS = "parameters"
+OBJ = "object"
+
+
+def _cross_section_node(obj):
+    d = {
+        OBJ: obj,
+        PARAMS: obj.parameters,
+        FUNC: obj.cross_section,
+        DERIV: obj.derivative,
+    }
+    return d
+
+def _ratecoeff_node(obj):
+    d = {
+        OBJ: obj,
+        PARAMS: obj.parameters,
+        FUNC: obj.rate_coefficient,
+        DERIV: obj.derivative,
+    }
+    return d
 
 class ReactionCore:
     r"""Basic, cross-section-independent reaction data
@@ -69,73 +91,69 @@ class Reaction:
         self._cross_section = dict()
 
         # everyone gets an ENDF cross section
-        self._cross_section[ENDF] = ENDFCrossSection(self._name).cross_section
-        self._cross_section[ANALYTIC] = self._no_cross_analytic
+        self._load_cross_section_ENDF()
 
         self._ratecoeff = dict()
 
-        # Maxwellian distribution always exists
-        self._ratecoeff[Distributions.MAXW] = dict()
-
         # see if Bosch-Hale provides reactivity
-        self.has_analytic_fit = self._name in BoschCrossSection.provides_reactions()
-        if self.has_analytic_fit:
-            self.bh_cross = BoschCrossSection(self._name)
-            self._cross_section[ANALYTIC] = self.bh_cross.cross_section
-            self.b_rcf = BoschRateCoeff(self._name)
-            self._ratecoeff[Distributions.MAXW][
-                ANALYTIC
-            ] = self.b_rcf.rate_coefficient
+        self.has_analytic_fit = (
+            self._name in BoschCrossSection.provides_reactions()
+        )
+        self._load_cross_section_analytic()
 
-        self._load_maxwellian_ratecoeff_integrator()
-        self._load_maxwellian_ratecoeff_interpolator()
+        initial_distributions = [Distributions.MAXW, Distributions.BIMAXW]
 
-        self._load_bimaxwellian_ratecoeff()
+        for dist in initial_distributions:
+            self._load_ratecoeff_analytic(dist)
 
+            self._load_integrator(dist)
+            self._load_ratecoeff_interpolator(dist)
 
     @property
     def name(self):
         return self._name
 
-    # gross, not scalable, should be replaced
-    def _load_bimaxwellian_ratecoeff(self):
-        self._ratecoeff[Distributions.BIMAXW] = dict()
-        self._load_bimaxwellian_ratecoeff_integrator()
-        self._load_bimaxwellian_ratecoeff_interpolator()
+    def _ensure_distribution(self, dist):
+        if not self._ratecoeff.get(dist):
+            self._ratecoeff[dist] = dict()
 
-    def _load_bimaxwellian_ratecoeff_integrator(self):
-        self._ratecoeff[Distributions.BIMAXW][
-            INTEGRATION
-        ] = RateCoefficientIntegratorBiMaxwellian(
-            self.rcore, self._cross_section[ENDF]
-        ).ratecoeff
+    def _load_cross_section_analytic(self):
+        if self.has_analytic_fit:
+            obj = BoschCrossSection(self._name)
+            d = _cross_section_node(obj)
+            self._cross_section[ANALYTIC] = d
 
-    def _load_bimaxwellian_ratecoeff_interpolator(self):
-        if ratecoeff_data_exists(self._name, Distributions.BIMAXW):
-            interp_bimaxw = RateCoefficientInterpolator(
-                self._name, Distributions.BIMAXW
-            )
-            self._ratecoeff[Distributions.BIMAXW][
-                INTERPOLATION
-            ] = interp_bimaxw.rate_coefficient
+    def _load_cross_section_ENDF(self):
+        obj = ENDFCrossSection(self._name)
+        d = _cross_section_node(obj)
+        self._cross_section[ENDF] = d
 
-    def _load_maxwellian_ratecoeff_integrator(self):
-        self._ratecoeff[Distributions.MAXW][
-            INTEGRATION
-        ] = RateCoefficientIntegratorMaxwellian(
-            self.rcore, self._cross_section[ENDF]
-        ).ratecoeff
+    def _load_ratecoeff_analytic(self, dist, **kwargs):
+        if self.has_analytic_fit and dist == Distributions.MAXW:
+            self._ensure_distribution(dist)
+            obj = BoschRateCoeff(self._name, **kwargs)
+            d = _ratecoeff_node(obj)
+            self._ratecoeff[dist][ANALYTIC] = d
 
-    def _load_maxwellian_ratecoeff_interpolator(self):
-        """Adds an interpolator"""
-        # Need to add logic for what to do if data does not exist
-        if ratecoeff_data_exists(self._name, Distributions.MAXW):
-            interp_maxw = RateCoefficientInterpolator(
-                self._name, Distributions.MAXW
-            )
-            self._ratecoeff[Distributions.MAXW][
-                INTERPOLATION
-            ] = interp_maxw.rate_coefficient
+    def _load_integrator(self, dist, **kwargs):
+
+        integrator = rate_coefficient_integrator_factory.create(
+            self.rcore, self._cross_section[ENDF][FUNC], dist, **kwargs
+        )
+
+        d = {OBJ: integrator, FUNC: integrator.ratecoeff}
+
+        self._ensure_distribution(dist)
+
+        self._ratecoeff[dist][INTEGRATION] = d
+
+    def _load_ratecoeff_interpolator(self, dist, **kwargs):
+        if ratecoeff_data_exists(self._name, dist):
+            interp = RateCoefficientInterpolator(self._name, dist, **kwargs)
+            d = _ratecoeff_node(interp)
+            self._ensure_distribution(dist)
+
+            self._ratecoeff[dist][INTERPOLATION] = d
 
     def print_available_functions(self):
         self.print_available_cross_sections()
@@ -200,7 +218,13 @@ class Reaction:
         The derivative w.r.t. energy, in mb/keV
         """
         e = np.asarray(e)
-        return self._cross_section[scheme](e, derivatives)
+        node = self._cross_section[scheme]
+        if not derivatives:
+            func = node[FUNC]
+        else:
+            func = node[DERIV]
+
+        return func(e)
 
     def _no_cross_analytic(self, *T, **kwargs):
         r"""There is no implemented analytic formation for the cross section.
@@ -270,30 +294,40 @@ rate_coefficient_x:\n"
 
         args = np.asarray(args)
 
-        return self._ratecoeff[distribution][scheme](
-            *args,
-            **kwargs,
-        )
+        node = self._ratecoeff[distribution][scheme]
+
+        if not derivatives:
+            func = node[FUNC]
+        else:
+            func = node[DERIV]
+
+        return func(*args, **kwargs)
 
 
 if __name__ == "__main__":
     import numpy as np
 
-    r = Reaction("D+T")
-    ts = np.array([10, 20, 30])
+    r = Reaction("D+D->³He + n")
+    # ts = np.array([10, 20, 30])
 
-    cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
+    # cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
     # cs = r.cross_section(ts, scheme="analytic", derivatives=True)
 
-    s = r.rate_coefficient(
-        ts,
-        scheme="interpolation",
-    )
-    # print(s)
     # s = r.rate_coefficient(
     #     ts,
     #     scheme="interpolation",
-    #     derivatives=True,
     # )
     # print(s)
-    print(r)
+    # s = r.rate_coefficient(
+    #     ts,
+    #     scheme="analytic",
+    #     derivatives=False,
+    # )
+    # print(s)
+    # s = r.rate_coefficient(
+    #     ts,
+    #     scheme="integration",
+    #     derivatives=False,
+    # )
+    # print(s)
+    r.print_available_functions()

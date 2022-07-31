@@ -107,7 +107,7 @@ class ENDFCrossSection:
     def __call__(self, e):
         return self.cross_section(e)
 
-    def cross_section(self, e, derivatives=False):
+    def cross_section(self, e):
         r"""Look up the cross section from ENDF data
         Parameters
         ----------
@@ -118,11 +118,12 @@ class ENDFCrossSection:
         -------
         Cross sections in millibarns
         """
-        if derivatives:
-            return self.interp.derivatives(e)
-        else:
-            return self.interp(e)
+        return self.interp(e)
 
+    def derivative(self, e):
+        return self.interp.derivatives(e)
+
+    @property
     def prescribed_range(self):
         r"""
         Returns
@@ -130,6 +131,10 @@ class ENDFCrossSection:
         [min, max] of COM energy range in keV
         """
         return [min(self.x), max(self.x)]
+
+    @property
+    def parameters(self):
+        return (("Energy", self.prescribed_range, "keV"))
 
 
 if __name__ == "__main__":

@@ -5,23 +5,6 @@ from fusrate.constants import Distributions
 from fusrate.load_data import load_ratecoeff_hdf5
 
 
-# half-baked factory implementation.
-# This whole module could be better
-class RateCoeffInterpolatorFactory:
-    def __init__(self):
-        self._builders = {}
-
-    def register_interpolator(self, distribution, builder):
-        self._builders[distribution] = builder
-
-    def create(self, canonical_name, distribution, **kwargs):
-        builder = self._builders.get(distribution)
-        if not builder:
-            raise ValueError(distribution)
-        dset = load_ratecoeff_hdf5(canonical_name, distribution)
-        return builder(dset, **kwargs)
-
-
 def _safe_log10(t):
     """Flushes zero or negative values to a small number"""
     very_small_exponent = -20
@@ -184,6 +167,22 @@ class TwoDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
     def derivative(self, perp_temperatures, parallel_temperatures, grid=False):
         pass
 
+
+class RateCoeffInterpolatorFactory:
+    def __init__(self):
+        self._builders = {}
+
+    def register_interpolator(self, distribution, builder):
+        self._builders[distribution] = builder
+
+    def create(self, canonical_name, distribution, **kwargs):
+        builder = self._builders.get(distribution)
+        if not builder:
+            raise ValueError(distribution)
+        dset = load_ratecoeff_hdf5(canonical_name, distribution)
+        return builder(dset, **kwargs)
+
+
 rate_coefficient_interpolator_factory = RateCoeffInterpolatorFactory()
 
 rate_coefficient_interpolator_factory.register_interpolator(
@@ -197,9 +196,9 @@ rate_coefficient_interpolator_factory.register_interpolator(
 class RateCoefficientInterpolator:
     r"""Loads a rate coefficient interpolator"""
 
-    def __init__(self, canonical_name, distribution):
+    def __init__(self, canonical_name, distribution, **kwargs):
         self.rci = rate_coefficient_interpolator_factory.create(
-            canonical_name, distribution
+            canonical_name, distribution, **kwargs
         )
         self.rate_coefficient = self.rci.rate_coefficient
         self.derivative = self.rci.derivative

@@ -124,6 +124,7 @@ class BoschCrossSection:
     def canonical_reaction_name(self):
         return self.reaction_name
 
+    @property
     def prescribed_range(self):
         r"""Energy range in keV over which the reaction is valid
 
@@ -136,6 +137,10 @@ class BoschCrossSection:
         if type(r[0]) == list:
             r = [r[0][0], r[-1][-1]]
         return r
+
+    @property
+    def parameters(self):
+        return (("Energy", self.prescribed_range, "keV"))
 
 
 class BoschRateCoeff:
@@ -240,8 +245,13 @@ class BoschRateCoeff:
     def canonical_reaction_name(self):
         return self.reaction_name
 
+    @property
     def prescribed_range(self):
         return self.COEFFICIENTS[self.reaction_name]["range"]
+
+    @property
+    def parameters(self):
+        return (("Temperature", self.prescribed_range, "keV"))
 
 
 class BoschHybridCrossSectionCalc:

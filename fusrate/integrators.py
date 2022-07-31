@@ -2,6 +2,7 @@ from cubature import cubature
 import numpy as np
 import scipy.interpolate
 
+from fusrate.constants import Distributions
 from fusrate.constants import atomic_mass_unit as amu
 from fusrate.constants import kiloelectronvolt as keV
 from fusrate.constants import millibarn_meters_squared_to_cubic_centimeter
@@ -375,6 +376,32 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
         val_cm3_s = val * millibarn_meters_squared_to_cubic_centimeter
         return val_cm3_s / self.extramult
 
+
+class RateCoeffIntegratorFactory:
+    def __init__(self):
+        self._builders = {}
+
+    def register_integrator(self, distribution, builder):
+        self._builders[distribution] = builder
+
+    def create(
+        self, reaction_core, cross_section_function, distribution, **kwargs
+    ):
+        builder = self._builders.get(distribution)
+        if not builder:
+            raise ValueError(distribution)
+        return builder(reaction_core, cross_section_function, **kwargs)
+
+
+rate_coefficient_integrator_factory = RateCoeffIntegratorFactory()
+
+rate_coefficient_integrator_factory.register_integrator(
+    Distributions.MAXW, RateCoefficientIntegratorMaxwellian
+)
+rate_coefficient_integrator_factory.register_integrator(
+    Distributions.BIMAXW, RateCoefficientIntegratorBiMaxwellian
+)
+
 if __name__ == "__main__":
     from fusrate.endf import ENDFCrossSection
     from fusrate.reaction import ReactionCore
@@ -387,9 +414,11 @@ if __name__ == "__main__":
 
     t1, t2 = np.meshgrid(my_t, my_t)
 
-    mwrc = RateCoefficientIntegratorMaxwellian(
-        rc, cs.cross_section, relerr=1e-4, maxeval=5e4, h=10, extramult=1e5
-    )
+    kwargs = {'relerr': 1e-4, 'maxeval': 5e4, 'h': 10}
+
+    mwrc = rate_coefficient_integrator_factory.create(rc, cs, "Maxwellian",
+            **kwargs)
+
     σv = mwrc.ratecoeff(my_t)
 
     plt.loglog(my_t, σv)
