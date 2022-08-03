@@ -22,23 +22,6 @@ PARAMS = "parameters"
 OBJ = "object"
 
 
-def _cross_section_node(obj):
-    d = {
-        OBJ: obj,
-        PARAMS: obj.parameters,
-        FUNC: obj.cross_section,
-        DERIV: obj.derivative,
-    }
-    return d
-
-def _ratecoeff_node(obj):
-    d = {
-        OBJ: obj,
-        PARAMS: obj.parameters,
-        FUNC: obj.rate_coefficient,
-        DERIV: obj.derivative,
-    }
-    return d
 
 class ReactionCore:
     r"""Basic, cross-section-independent reaction data
@@ -66,15 +49,49 @@ class ReactionCore:
     def canonical_name(self):
         return self._name
 
+    @property
     def reactants(self):
         return self.beam, self.target
 
+    @property
     def reactant_masses(self):
         return self.m_beam, self.m_tar
 
+    @property
     def beam_target_to_com_factor(self):
         return self.bt_to_com
 
+    def __eq__(self, other):
+        if self.__class__ == other.__class__:
+            return self._name == other._name
+        return False
+
+    def __hash__(self):
+        return hash((self._name, ))
+
+    def __str__(self):
+        return f"{self.__class__.__name__} {self._name}"
+
+    def __repr__(self):
+        return f"{self.__class__.__qualname__}({self._name})"
+
+def _cross_section_node(obj):
+    d = {
+        OBJ: obj,
+        PARAMS: obj.parameters,
+        FUNC: obj.cross_section,
+        DERIV: obj.derivative,
+    }
+    return d
+
+def _ratecoeff_node(obj):
+    d = {
+        OBJ: obj,
+        PARAMS: obj.parameters,
+        FUNC: obj.rate_coefficient,
+        DERIV: obj.derivative,
+    }
+    return d
 
 class Reaction:
     r"""Main reaction class"""
@@ -194,7 +211,7 @@ class Reaction:
         return f"{self.__class__.__name__} {self._name}"
 
     def __repr__(self):
-        return f"fusrate.reaction.Reaction({self._name})"
+        return f"{self.__class__.__qualname__}({self._name})"
 
     def cross_section(self, e, scheme="ENDF", derivatives=False):
         r"""Get interpolated (or analytic) cross sections
@@ -330,4 +347,4 @@ if __name__ == "__main__":
     #     derivatives=False,
     # )
     # print(s)
-    r.print_available_functions()
+    print(r.__repr__())
