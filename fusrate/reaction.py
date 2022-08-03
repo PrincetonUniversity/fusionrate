@@ -107,7 +107,6 @@ class Reaction:
 
         self._cross_section = dict()
 
-        # everyone gets an ENDF cross section
         self._load_cross_section_ENDF()
 
         self._ratecoeff = dict()
@@ -122,7 +121,6 @@ class Reaction:
 
         for dist in initial_distributions:
             self._load_ratecoeff_analytic(dist)
-
             self._load_integrator(dist)
             self._load_ratecoeff_interpolator(dist)
 
@@ -253,6 +251,10 @@ class Reaction:
             f"There is no implemented analytic cross section"
             f" function for {self._name}."
         )
+
+    def get_rate_coefficient_object(self, distribution: str, scheme:str):
+        return self._ratecoeff[distribution][scheme][OBJ]
+
 
     def _validate_ratecoeff_opts(
         self, distribution: str, scheme: str, derivatives: bool

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fusrate.bosch import BoschRateCoeff
-from fusrate.ratecoefficient import RateCoefficientInterpolator
 from fusrate.reaction import Reaction
 
 
@@ -20,16 +19,15 @@ meters_cubed_in_cm_cubed = 1e6
 
 def plot_comparison(reaction):
     sv = BoschRateCoeff(reaction)
-    t_range = sv.prescribed_range()
+    t_range = sv.prescribed_range
 
     r = Reaction(reaction)
-    interp = RateCoefficientInterpolator(r.canonical_name(), "Maxwellian")
 
     t = np.logspace(*np.log10(t_range), 100)
 
     x = t
-    y_b = sv.ratecoeff(t) / meters_cubed_in_cm_cubed
-    y_i = interp.rate_coefficient(t) / meters_cubed_in_cm_cubed
+    y_b = sv.rate_coefficient(t) / meters_cubed_in_cm_cubed
+    y_i = r.rate_coefficient(t) / meters_cubed_in_cm_cubed
     ax.plot(x, y_i/y_b, label=reaction, ls=line_styles[i])
 
 

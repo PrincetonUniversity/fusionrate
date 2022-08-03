@@ -7,6 +7,7 @@ from fusrate.endf import ENDFCrossSection
 from fusrate.load_data import save_ratecoeff_hdf5
 from fusrate.integrators import rate_coefficient_integrator_factory
 from fusrate.reaction import ReactionCore
+from fusrate.reaction import Reaction
 
 from fusrate.reactionnames import ALL_REACTIONS
 
@@ -22,12 +23,13 @@ def temperature_limits(temperatures: np.array):
     )
 
 
-def ratecoeff_data_1d(rc: ReactionCore):
-    cs = ENDFCrossSection(rc)
-    mwrc = rate_coefficient_integrator_factory.create(
-        rc, cs.cross_section, distribution="Maxwellian", relerr=1e-8, maxeval=1e7, h=25
-    )
-    ratecoeff = mwrc.ratecoeff(temperatures)
+def ratecoeff_data_1d(r: Reaction):
+    integrator = r.get_rate_coefficient_object("Maxwellian", "integration")
+    integrator.h = 25
+    integrator.relerr = 1e-8
+    integrator.maxeval = 1e7
+
+    ratecoeff = r.rate_coefficient(temperatures, scheme='integration')
     return ratecoeff
 
 
@@ -37,10 +39,9 @@ def plot_check_1d(t, sv):
 
 
 def generate_and_store_ratecoeff_data_1d(reaction: str):
-    rc = ReactionCore(reaction)
-    canonical_name = rc.canonical_name
-
-    ratecoeffs = ratecoeff_data_1d(rc)
+    r = Reaction(reaction)
+    canonical_name = r.name
+    ratecoeffs = ratecoeff_data_1d(r)
 
     current_time = datetime.datetime.now().isoformat()
 

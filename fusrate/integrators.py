@@ -156,18 +156,8 @@ def makef_simplermaxwellian(σ, m1, m2, extramult=1):
         h : number
             multiples of the thermal velocity to integrate out to
         """
-        xmin = np.array(
-            [
-                0,
-            ],
-            np.float64,
-        )
-        xmax = np.array(
-            [
-                h,
-            ],
-            np.float64,
-        )
+        xmin = np.array([0], np.float64)
+        xmax = np.array([h], np.float64)
         return xmin, xmax
 
     return f, x_limits
@@ -274,20 +264,35 @@ class RateCoefficientIntegrator:
 
         self.relerr = relerr
         self.maxeval = maxeval
-        self.h = h
+        self._h = h
 
         self.extramult = extramult
 
-        self.f, xlimits = integrand_maker(σ, self.m_a, self.m_b, extramult)
-        self.xmin, self.xmax = xlimits(h)
+        self.f, self._fxlimits = integrand_maker(
+            σ, self.m_a, self.m_b, extramult
+        )
+        self._set_xlimits()
 
         self.ratecoeff = np.vectorize(self.ratecoeff, otypes=["float"])
+
+    @property
+    def h(self):
+        """Integration limit, measured in multiples of temperature"""
+        return self._h
+
+    @h.setter
+    def h(self, value):
+        self._h = value
+        self._set_xlimits()
+
+    def _set_xlimits(self):
+        self._xmin, self._xmax = self._fxlimits(self._h)
 
 
 class RateCoefficientIntegratorMaxwellian(RateCoefficientIntegrator):
     r"""Isotropic, single ion temperature, no drifts"""
 
-    def __init__(self, rcore, σ, relerr=1e-6, maxeval=1e4, h=20, extramult=1):
+    def __init__(self, rcore, σ, relerr=1e-6, maxeval=1e4, h=25, extramult=1):
         super().__init__(
             rcore, σ, makef_simplermaxwellian, relerr, maxeval, h, extramult
         )
@@ -314,8 +319,8 @@ class RateCoefficientIntegratorMaxwellian(RateCoefficientIntegrator):
             self.f,
             1,
             1,
-            self.xmin,
-            self.xmax,
+            self._xmin,
+            self._xmax,
             args=(T,),
             vectorized=True,
             relerr=self.relerr,
@@ -365,8 +370,8 @@ class RateCoefficientIntegratorBiMaxwellian(RateCoefficientIntegrator):
             self.f,
             5,
             1,
-            self.xmin,
-            self.xmax,
+            self._xmin,
+            self._xmax,
             args=(vth_a_perp, vth_a_par, vth_b_perp, vth_b_par),
             vectorized=True,
             relerr=self.relerr,
@@ -414,10 +419,11 @@ if __name__ == "__main__":
 
     t1, t2 = np.meshgrid(my_t, my_t)
 
-    kwargs = {'relerr': 1e-4, 'maxeval': 5e4, 'h': 10}
+    kwargs = {"relerr": 1e-4, "maxeval": 5e4, "h": 10}
 
-    mwrc = rate_coefficient_integrator_factory.create(rc, cs, "Maxwellian",
-            **kwargs)
+    mwrc = rate_coefficient_integrator_factory.create(
+        rc, cs, "Maxwellian", **kwargs
+    )
 
     σv = mwrc.ratecoeff(my_t)
 
