@@ -1,3 +1,5 @@
+import numpy as np
+
 import fusrate.reactionnames as rn
 from fusrate.bosch import BoschCrossSection
 from fusrate.bosch import BoschRateCoeff
@@ -7,8 +9,6 @@ from fusrate.integrators import rate_coefficient_integrator_factory
 from fusrate.interpolators import RateCoefficientInterpolator
 from fusrate.constants import Distributions
 from fusrate.load_data import ratecoeff_data_exists
-
-import numpy as np
 
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
@@ -62,9 +62,9 @@ class ReactionCore:
         return self.bt_to_com
 
     def __eq__(self, other):
-        if self.__class__ == other.__class__:
-            return self._name == other._name
-        return False
+        if other.__class__ is not self.__class__:
+            return NotImplementedError
+        return self._name == other._name
 
     def __hash__(self):
         return hash((self._name, ))
@@ -324,7 +324,8 @@ rate_coefficient_x:\n"
 if __name__ == "__main__":
     import numpy as np
 
-    r = Reaction("D+D->³He + n")
+    # r = Reaction("D+T")
+    r = Reaction("p + 6Li")
     # ts = np.array([10, 20, 30])
 
     # cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
@@ -347,4 +348,4 @@ if __name__ == "__main__":
     #     derivatives=False,
     # )
     # print(s)
-    print(r.__repr__())
+    r.print_available_functions()
