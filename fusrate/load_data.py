@@ -1,9 +1,12 @@
 from importlib import resources
+from pathlib import Path
 
+import appdirs
 import h5py
 import numpy as np
 
 from fusrate.reactionnames import reaction_filename_part
+from fusrate.constants import PROJECT
 
 DEFAULT_DATA_DIR = "fusrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
@@ -12,13 +15,26 @@ CROSS_SECTION_FILETYPE = ".csv"
 INTERPOLATION_FILETYPE = ".hdf5"
 RATE_COEFFICIENT_DSET = "rate_coefficients"
 
+# should look in user data dir and then in the default data directory
+
+
+def user_data_dir():
+    return appdirs.user_data_dir(appname=PROJECT)
+
+
+def file_in_user_dir(dname):
+    return Path(user_data_dir(), dname)
+
 
 def locate_data_file(dname: str):
-    if resources.is_resource(DEFAULT_DATA_DIR, dname):
+    path = file_in_user_dir(dname)
+    if path.is_file():
+        return path
+    elif resources.is_resource(DEFAULT_DATA_DIR, dname):
         with resources.path(DEFAULT_DATA_DIR, dname) as f:
             return f
     else:
-        raise FileNotFoundError(dname + " not found in data directory.")
+        raise FileNotFoundError(dname + " not found in data.")
 
 
 def load_data_file(dname: str):
@@ -31,10 +47,16 @@ def cross_section_filename(canonical_reaction_name):
     s = reaction_filename_part(canonical_reaction_name)
     return f"{CROSS_SECTION_PREFIX}{s}{CROSS_SECTION_FILETYPE}"
 
+
 def ratecoeff_data_exists(canonical_reaction_name: str, distribution: str):
     dname = ratecoeff_filename(canonical_reaction_name, distribution)
-    dname = dname + INTERPOLATION_FILETYPE
-    return resources.is_resource(DEFAULT_DATA_DIR, dname)
+    try:
+        locate_data_file(dname)
+    except FileNotFoundError:
+        return False
+
+    return True
+
 
 def ratecoeff_filename(canonical_reaction_name: str, distribution: str) -> str:
     r"""
@@ -43,7 +65,8 @@ def ratecoeff_filename(canonical_reaction_name: str, distribution: str) -> str:
     distribution : str
     """
     s = reaction_filename_part(canonical_reaction_name)
-    return f"{RATE_COEFF_PREFIX}{s}_{distribution}"
+    fname = f"{RATE_COEFF_PREFIX}{s}_{distribution}"
+    return fname + INTERPOLATION_FILETYPE
 
 
 def cross_section_data(canonical_reaction_name: str):
@@ -71,8 +94,7 @@ def cross_section_data(canonical_reaction_name: str):
 
 def load_ratecoeff_hdf5(canonical_name: str, distribution: str):
     reaction_filename = ratecoeff_filename(canonical_name, distribution)
-    dname = reaction_filename + INTERPOLATION_FILETYPE
-    with resources.path(DEFAULT_DATA_DIR, dname) as f:
+    with locate_data_file(reaction_filename) as f:
         hdf = h5py.File(f, "r")
         dset = hdf[RATE_COEFFICIENT_DSET]
         return dset
@@ -90,8 +112,9 @@ def save_ratecoeff_hdf5(
     time_generated,
 ):
     reaction_filename = ratecoeff_filename(canonical_name, distribution)
+    full_name = file_in_user_dir(reaction_filename)
 
-    with h5py.File(reaction_filename + ".hdf5", "w") as f:
+    with h5py.File(full_name, "w") as f:
         dset = f.create_dataset(RATE_COEFFICIENT_DSET, data=rate_coefficients)
         dset.attrs["Reaction"] = canonical_name
         dset.attrs["Type of data"] = reaction_filename
@@ -109,4 +132,5 @@ def save_ratecoeff_hdf5(
 if __name__ == "__main__":
     from reactionnames import DT_NAME
 
-    print(cross_section_data(DT_NAME).T)
+    csf = cross_section_filename(DT_NAME)
+    print(type(locate_data_file(csf)))
