@@ -1,14 +1,14 @@
 import numpy as np
 
-import fusrate.reactionnames as rn
-from fusrate.bosch import BoschCrossSection
-from fusrate.bosch import BoschRateCoeff
-from fusrate.endf import ENDFCrossSection
-from fusrate.ion_data import ion_mass
-from fusrate.integrators import rate_coefficient_integrator_factory
-from fusrate.interpolators import RateCoefficientInterpolator
-from fusrate.constants import Distributions
-from fusrate.load_data import ratecoeff_data_exists
+import fusionrate.reactionnames as rn
+from fusionrate.bosch import BoschCrossSection
+from fusionrate.bosch import BoschRateCoeff
+from fusionrate.endf import ENDFCrossSection
+from fusionrate.ion_data import ion_mass
+from fusionrate.integrators import rate_coefficient_integrator_factory
+from fusionrate.interpolators import RateCoefficientInterpolator
+from fusionrate.constants import Distributions
+from fusionrate.load_data import ratecoeff_data_exists
 
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
@@ -191,7 +191,7 @@ class Reaction:
 
         Examples
         --------
-        >>> from fusrate import Reaction
+        >>> from fusionrate import Reaction
         >>> r = Reaction("D+T")
         >>> r.available_distributions()
         ["Maxwellian"]

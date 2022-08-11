@@ -1,4 +1,4 @@
-import fusrate.bosch as bosch
+import fusionrate.bosch as bosch
 
 import unittest
 import numpy as np

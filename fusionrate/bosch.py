@@ -1,10 +1,10 @@
 import numpy as np
 
-from fusrate.reactionnames import bosch_name_resolver
-from fusrate.reactionnames import DDHE3_NAME
-from fusrate.reactionnames import DDT_NAME
-from fusrate.reactionnames import DHE3_NAME
-from fusrate.reactionnames import DT_NAME
+from fusionrate.reactionnames import bosch_name_resolver
+from fusionrate.reactionnames import DDHE3_NAME
+from fusionrate.reactionnames import DDT_NAME
+from fusionrate.reactionnames import DHE3_NAME
+from fusionrate.reactionnames import DT_NAME
 
 
 class BoschCrossSection:

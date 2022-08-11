@@ -1,8 +1,8 @@
-from fusrate.interpolators import RateCoefficientInterpolator
+from fusionrate.interpolators import RateCoefficientInterpolator
 
 import unittest
 import numpy as np
-from fusrate.reactionnames import DT_NAME
+from fusionrate.reactionnames import DT_NAME
 
 
 def no_nans(val):

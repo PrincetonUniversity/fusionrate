@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fusrate.bosch import BoschRateCoeff
+from fusionrate.bosch import BoschRateCoeff
 
 line_styles = [
     "solid",

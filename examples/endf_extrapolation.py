@@ -3,8 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fusrate.endf import LogLogExtrapolation
-from fusrate.load_data import cross_section_data
+from fusionrate.endf import LogLogExtrapolation
+from fusionrate.load_data import cross_section_data
 
 fig, ax = plt.subplots()
 ax.set_xscale("log")

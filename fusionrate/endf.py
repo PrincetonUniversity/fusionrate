@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
 
-import fusrate.reactionnames as rn
-from fusrate.ion_data import ion_mass
-from fusrate.load_data import cross_section_data
+import fusionrate.reactionnames as rn
+from fusionrate.ion_data import ion_mass
+from fusionrate.load_data import cross_section_data
 
 
 class LogLogExtrapolation:
@@ -139,7 +139,7 @@ class ENDFCrossSection:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from fusrate.load_data import load_data_file
+    from fusionrate.load_data import load_data_file
 
     endf = ENDFCrossSection("D+T")
 

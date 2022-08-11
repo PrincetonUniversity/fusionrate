@@ -3,12 +3,12 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fusrate.endf import ENDFCrossSection
-from fusrate.load_data import save_ratecoeff_hdf5
-from fusrate.ratecoefficient import RateCoefficientIntegratorBiMaxwellian
-from fusrate.reaction import ReactionCore
+from fusionrate.endf import ENDFCrossSection
+from fusionrate.load_data import save_ratecoeff_hdf5
+from fusionrate.ratecoefficient import RateCoefficientIntegratorBiMaxwellian
+from fusionrate.reaction import ReactionCore
 
-from fusrate.reactionnames import ALL_REACTIONS
+from fusionrate.reactionnames import ALL_REACTIONS
 
 min_log10_temp = -2.0
 max_log10_temp = 4.0

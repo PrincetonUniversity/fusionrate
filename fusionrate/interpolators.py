@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.interpolate
 
-from fusrate.constants import Distributions
-from fusrate.load_data import load_ratecoeff_hdf5
+from fusionrate.constants import Distributions
+from fusionrate.load_data import load_ratecoeff_hdf5
 
 
 def _safe_log10(t):

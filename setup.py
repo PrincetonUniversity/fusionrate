@@ -4,14 +4,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="fusrate",
+    name="fusionrate",
     version="0.0.1",
     author="Jacob Schwartz",
     author_email="jacob@jaschwartz.net",
-    description="Calculate fusion reaction rates",
+    description="Fusion cross sections and rate coefficients",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/cfe316/fusrate",
+    url="https://github.com/cfe316/fusionrate",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

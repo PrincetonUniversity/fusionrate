@@ -1,11 +1,11 @@
-import fusrate.reactionnames as rn
-from fusrate.reactionnames import DT_NAME
-from fusrate.reactionnames import DHE3_NAME
-from fusrate.reactionnames import DDT_NAME
-from fusrate.reactionnames import DDHE3_NAME
+import fusionrate.reactionnames as rn
+from fusionrate.reactionnames import DT_NAME
+from fusionrate.reactionnames import DHE3_NAME
+from fusionrate.reactionnames import DDT_NAME
+from fusionrate.reactionnames import DDHE3_NAME
 
-from fusrate.reactionnames import PLI6_NAME
-from fusrate.reactionnames import PB11_NAME
+from fusionrate.reactionnames import PLI6_NAME
+from fusionrate.reactionnames import PB11_NAME
 
 import unittest
 

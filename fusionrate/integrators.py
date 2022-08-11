@@ -2,12 +2,12 @@ from cubature import cubature
 import numpy as np
 import scipy.interpolate
 
-from fusrate.constants import Distributions
-from fusrate.constants import atomic_mass_unit as amu
-from fusrate.constants import kiloelectronvolt as keV
-from fusrate.constants import millibarn_meters_squared_to_cubic_centimeter
-from fusrate.physics import reduced_mass
-from fusrate.physics import v_th
+from fusionrate.constants import Distributions
+from fusionrate.constants import atomic_mass_unit as amu
+from fusionrate.constants import kiloelectronvolt as keV
+from fusionrate.constants import millibarn_meters_squared_to_cubic_centimeter
+from fusionrate.physics import reduced_mass
+from fusionrate.physics import v_th
 
 
 # This is my velocity-based implementation
@@ -408,8 +408,8 @@ rate_coefficient_integrator_factory.register_integrator(
 )
 
 if __name__ == "__main__":
-    from fusrate.endf import ENDFCrossSection
-    from fusrate.reaction import ReactionCore
+    from fusionrate.endf import ENDFCrossSection
+    from fusionrate.reaction import ReactionCore
     import matplotlib.pyplot as plt
     import inspect
 

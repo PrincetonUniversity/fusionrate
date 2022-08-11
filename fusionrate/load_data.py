@@ -5,10 +5,10 @@ import appdirs
 import h5py
 import numpy as np
 
-from fusrate.reactionnames import reaction_filename_part
-from fusrate.constants import PROJECT
+from fusionrate.reactionnames import reaction_filename_part
+from fusionrate.constants import PROJECT
 
-DEFAULT_DATA_DIR = "fusrate.data"
+DEFAULT_DATA_DIR = "fusionrate.data"
 CROSS_SECTION_PREFIX = "cross_section_"
 RATE_COEFF_PREFIX = "rate_coefficient_"
 CROSS_SECTION_FILETYPE = ".csv"
