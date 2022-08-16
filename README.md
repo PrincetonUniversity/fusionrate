@@ -12,10 +12,12 @@ It has data on
 
 and their derivatives, as functions of temperature, for the major fusion-power relevant reactions.
 
+This package is a part of the [FAROES](https://github.com/Plasmacontrol/FAROES) project, and is released separately for convenience.
+
 Usage
 =====
 
-I'm still working on the API; this may change.
+Note that the API is still in alpha.
 
 ```
 >>> from fusionrate import Reaction
