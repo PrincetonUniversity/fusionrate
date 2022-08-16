@@ -38,6 +38,10 @@ Also see the example scripts provided.
 Installation
 ============
 
+For now, install manually using pip:
+
+`pip install -e fusionrate`.
+
 Eventually this package should be able to be installed from `PyPi`, using pip:
 
 `pip install fusionrate`
