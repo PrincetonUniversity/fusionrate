@@ -29,7 +29,7 @@ I'm still working on the API; this may change.
 >>> rc = dt.rate_coefficient(temperatures)  # in cm³/s
 
 # To get derivatives of rate coefficients, in  cm³/s/keV
->>> rc_derivs = dtreaction.rate_coefficient(temperature, derivatives=True)
+>>> rc_derivs = dt.rate_coefficient(temperature, derivatives=True)
 ```
 Also see the example scripts provided.
 
@@ -49,4 +49,8 @@ Licensing
 =========
 
 Like its parent project, FAROES, this package is released under the MIT license.
-If you're interested in using this package under a different license, let's talk.
+
+Funding
+=======
+
+This code is developed using funding from the Department of Energy, including Contract No. DE-AC02-09CH11466.

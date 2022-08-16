@@ -11,7 +11,7 @@ setuptools.setup(
     description="Fusion cross sections and rate coefficients",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/cfe316/fusionrate",
+    url="https://github.com/PlasmaControl/fusionrate",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
