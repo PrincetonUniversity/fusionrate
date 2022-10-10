@@ -11,6 +11,7 @@ def _safe_log10(t):
         res = np.log10(t)
         res[np.isneginf(res)] = very_small_exponent
         res[np.isnan(res)] = very_small_exponent
+        res[np.isnan(t)] = np.nan
         return res
 
 def _ensure_lower_limit(t, lower_limit):
