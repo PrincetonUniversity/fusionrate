@@ -2,14 +2,8 @@ from fusionrate.interpolators import RateCoefficientInterpolator
 
 import unittest
 import numpy as np
+from fusionrate.test.utility import has_nans, no_nans
 from fusionrate.reactionnames import DT_NAME
-
-
-def no_nans(val):
-    assert not np.any(np.isnan(val))
-
-def has_nans(val):
-    assert np.any(np.isnan(val))
 
 
 class TestRateCoefficientInterpolator1D(unittest.TestCase):

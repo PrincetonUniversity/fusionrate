@@ -1,4 +1,5 @@
 import fusionrate.bosch as bosch
+from fusionrate.test.utility import has_nans, no_nans
 
 import unittest
 import numpy as np
@@ -89,6 +90,11 @@ class TestBoschCrossSection(unittest.TestCase):
             ]
         )
         self.compare_results(cs, table_results)
+
+    def test_cross_section_nans(self):
+        cs = bosch.BoschCrossSection("DT")
+        val = cs.cross_section(np.array([np.nan]))
+        has_nans(val)
 
 
 class TestBoschRateCoeff(unittest.TestCase):
