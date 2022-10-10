@@ -4,7 +4,6 @@ import scipy.interpolate
 from fusionrate.constants import Distributions
 from fusionrate.load_data import load_ratecoeff_hdf5
 
-
 def _safe_log10(t):
     """Flushes zero or negative values to a small number"""
     very_small_exponent = -20
@@ -13,6 +12,9 @@ def _safe_log10(t):
         res[np.isneginf(res)] = very_small_exponent
         res[np.isnan(res)] = very_small_exponent
         return res
+
+def _ensure_lower_limit(t, lower_limit):
+    return np.maximum(t, lower_limit)
 
 
 class HdfRateCoefficientInterpolator:
@@ -111,6 +113,11 @@ class OneDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
 
     def derivative(self, temperatures):
         self._ensure_derivative()
+
+        # flush negatives or zeros to the lower limit
+        lower_limit = self.parameter_limits[0][0]
+        temperatures = _ensure_lower_limit(temperatures, lower_limit)
+
         log_temps = _safe_log10(temperatures)
         log_z = self._interp(log_temps)
         val = np.power(10, log_z)

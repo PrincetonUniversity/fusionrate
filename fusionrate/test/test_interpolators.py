@@ -23,8 +23,8 @@ class TestRateCoefficientInterpolator1D(unittest.TestCase):
     def test_derivative(self):
         self.dt_max.derivative(self.temperatures)
 
-    def test_parameter_limits(self):
-        self.dt_max.parameter_limits()
+    def test_parameters(self):
+        self.dt_max.parameters
 
     def test_ratecoeff_zero(self):
         result = self.dt_max.rate_coefficient(self.array_with_zero)

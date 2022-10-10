@@ -17,12 +17,12 @@ meters_cubed_in_cm_cubed = 1e6
 
 def plot_cs(reaction):
     cs = BoschRateCoeff(reaction)
-    t_range = cs.prescribed_range()
+    t_range = cs.prescribed_range
 
     t = np.logspace(*np.log10(t_range), 100)
 
     x_hb = t
-    y_hb = cs.ratecoeff(t) / meters_cubed_in_cm_cubed / t ** 2
+    y_hb = cs.rate_coefficient(t) / meters_cubed_in_cm_cubed / t ** 2
     ax[0].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
     ax[1].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
 

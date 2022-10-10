@@ -15,7 +15,7 @@ fig, ax = plt.subplots(1, 2)
 
 def plot_cs(reaction):
     cs = BoschCrossSection(reaction)
-    e_range = cs.prescribed_range()
+    e_range = cs.prescribed_range
 
     e = np.logspace(*np.log10(e_range), 100)
 

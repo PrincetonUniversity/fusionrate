@@ -108,11 +108,11 @@ class TestBoschRateCoeff(unittest.TestCase):
         )
 
     def compare_results(self, r, actual):
-        code_results = r.ratecoeff(self.table_temperatures)
+        code_results = r.rate_coefficient(self.table_temperatures)
         compare = np.allclose(code_results, actual, rtol=5e-4, atol=1e-40)
         assert compare
 
-    def test_ratecoeff_dt(self):
+    def test_rate_coefficient_dt(self):
         r = bosch.BoschRateCoeff("DT")
         # results in cm³/s
         table_results = np.array(
@@ -129,7 +129,7 @@ class TestBoschRateCoeff(unittest.TestCase):
         )
         self.compare_results(r, table_results)
 
-    def test_ratecoeff_dhe3(self):
+    def test_rate_coefficient_dhe3(self):
         r = bosch.BoschRateCoeff("D3He")
         # results in cm³/s
         table_results = np.array(
@@ -146,7 +146,7 @@ class TestBoschRateCoeff(unittest.TestCase):
         )
         self.compare_results(r, table_results)
 
-    def test_ratecoeff_ddpt(self):
+    def test_rate_coefficient_ddpt(self):
         r = bosch.BoschRateCoeff("D(d,p)T")
         # results in cm³/s
         table_results = np.array(
@@ -163,7 +163,7 @@ class TestBoschRateCoeff(unittest.TestCase):
         )
         self.compare_results(r, table_results)
 
-    def test_ratecoeff_ddn3he(self):
+    def test_rate_coefficient_ddn3he(self):
         r = bosch.BoschRateCoeff("D(d,n)³He")
         # results in cm³/s
         table_results = np.array(

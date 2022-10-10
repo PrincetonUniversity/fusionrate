@@ -17,12 +17,12 @@ meters_cubed_in_cm_cubed = 1e6
 
 def plot_sv(reaction):
     sv = BoschRateCoeff(reaction)
-    t_range = sv.prescribed_range()
+    t_range = sv.prescribed_range
 
     t = np.logspace(*np.log10(t_range), 100)
 
     x_hb = t
-    y_hb = sv.ratecoeff(t) / meters_cubed_in_cm_cubed
+    y_hb = sv.rate_coefficient(t) / meters_cubed_in_cm_cubed
     ax[0].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
     ax[1].plot(x_hb, y_hb, label=reaction, ls=line_styles[i])
 

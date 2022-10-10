@@ -26,7 +26,7 @@ beam_target_to_com = m_tar / (m_beam + m_tar)
 
 # center of mass energies
 cs = BoschCrossSection(reaction)
-upper_limit = cs.prescribed_range()[-1]
+upper_limit = cs.prescribed_range[-1]
 
 e = np.logspace(-1, np.log10(upper_limit), 500)
 e2 = np.logspace(np.log10(upper_limit), 8, 500)
