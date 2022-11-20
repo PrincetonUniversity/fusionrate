@@ -5,12 +5,17 @@ from fusionrate.constants import Distributions
 from fusionrate.load_data import load_ratecoeff_hdf5
 
 def _safe_log10(t):
-    """Flushes zero or negative values to a small number"""
+    """Flushes zero or negative values to a small number
+
+    Positive or inf -> standard log 10
+    Zero or negative or -inf -> very small number
+    nan -> nan
+
+    """
     very_small_exponent = -20
     with np.errstate(divide="ignore", invalid="ignore"):
         res = np.log10(t)
-        res[np.isneginf(res)] = very_small_exponent
-        res[np.isnan(res)] = very_small_exponent
+        res[np.isneginf(res) | np.isnan(res)] = very_small_exponent
         res[np.isnan(t)] = np.nan
         return res
 
