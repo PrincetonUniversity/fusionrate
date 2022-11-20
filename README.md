@@ -46,6 +46,12 @@ Eventually this package should be able to be installed from `PyPi`, using pip:
 
 `pip install fusionrate`
 
+Handling of unreasonable numerical inputs
+=========================================
+The package tries to handle broken or unreasonable inputs silently, in a reasonable way, rather than crashing. 
+Negative or infinite energies or temperatures resolve to NaN.
+Zero energies or temperatures may be handled as if they had a very small positive value, in order to make use of interpolation functions in log-log space.
+
 Citing
 ======
 

@@ -232,7 +232,7 @@ class Reaction:
 
         The derivative w.r.t. energy, in mb/keV
         """
-        e = np.asarray(e)
+        e = np.atleast_1d(e)
         node = self._cross_section[scheme]
         if not derivatives:
             func = node[FUNC]
@@ -311,7 +311,7 @@ rate_coefficient_x:\n"
         """
         self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
-        args = np.asarray(args)
+        arrayed_args = [np.atleast_1d(a) for a in args]
 
         node = self._ratecoeff[distribution][scheme]
 
@@ -320,7 +320,7 @@ rate_coefficient_x:\n"
         else:
             func = node[DERIV]
 
-        return func(*args, **kwargs)
+        return func(*arrayed_args, **kwargs)
 
 
 if __name__ == "__main__":
