@@ -304,8 +304,6 @@ class BoschHybridCrossSectionCalc:
         is_lower = e <= self.transition_energy
         σ_lower = self.lower_calc.dcrosssection_de(e)
         σ_upper = self.upper_calc.dcrosssection_de(e)
-        print(σ_lower)
-        print(σ_upper)
         σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
         return σ
 

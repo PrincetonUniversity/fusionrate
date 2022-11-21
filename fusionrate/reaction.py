@@ -93,6 +93,35 @@ def _ratecoeff_node(obj):
     }
     return d
 
+def _normalize_energy(e):
+    r"""
+    e: float or array_like
+    """
+    e = np.atleast_1d(e).astype(float)
+    bad_ix = np.logical_or(e < 0.0, ~np.isfinite(e))
+    e[bad_ix] = np.nan
+    return e
+
+def _operate_on_valid(func, e):
+    r"""Call func(e) only for positive numbers
+
+    Keeps NaNs and 0s as they are.
+
+    Parameters
+    ----------
+    func:
+        a function which takes one argument
+    e: np.array
+
+    """
+    result = np.full(e.shape, np.nan)
+    result[e == 0.0] = 0.0
+    ix = e > 0
+    if np.any(ix):
+        result[ix] = func(e[ix])
+    return result
+
+
 class Reaction:
     r"""Main reaction class"""
 
@@ -232,14 +261,12 @@ class Reaction:
 
         The derivative w.r.t. energy, in mb/keV
         """
-        e = np.atleast_1d(e)
+        e = _normalize_energy(e)
         node = self._cross_section[scheme]
-        if not derivatives:
-            func = node[FUNC]
-        else:
-            func = node[DERIV]
+        key = DERIV if derivatives else FUNC
+        func = node[key]
 
-        return func(e)
+        return _operate_on_valid(func, e)
 
     def _no_cross_analytic(self, *T, **kwargs):
         r"""There is no implemented analytic formation for the cross section.
