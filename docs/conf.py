@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'fusionrate'
-copyright = '2022, Jacob A. Schwartz'
+copyright = '2023, Jacob A. Schwartz'
 author = 'Jacob A. Schwartz'
 
 # The full version, including alpha/beta/rc tags
