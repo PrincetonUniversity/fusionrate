@@ -50,7 +50,10 @@ Handling of unreasonable numerical inputs
 =========================================
 The package tries to handle broken or unreasonable inputs silently, in a reasonable way, rather than crashing. 
 Negative or infinite energies or temperatures resolve to NaN.
-Zero energies or temperatures may be handled as if they had a very small positive value, in order to make use of interpolation functions in log-log space.
+
+Zero energies or temperatures should return zero cross sections and rate coefficients.
+However, the derivatives with respect to energies or temperatures may be small but nonzero,
+in order to help a gradient-based optimizer realize that positive temperatures increase fusion rates.
 
 Citing
 ======
