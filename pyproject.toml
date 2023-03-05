@@ -30,10 +30,18 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/PlasmaControl/fusionrate"
 
-#pyproject.toml
+[project.optional-dependencies]
+tests = [
+  "pytest",
+]
+dev = [
+  "flake8",
+]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q"
 testpaths = [
   "tests",
 ]
+
