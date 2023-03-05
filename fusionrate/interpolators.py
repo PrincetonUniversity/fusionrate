@@ -4,6 +4,7 @@ import scipy.interpolate
 from fusionrate.constants import Distributions
 from fusionrate.load_data import load_ratecoeff_hdf5
 
+
 def _safe_log10(t):
     """Flushes zero or negative values to a small number
 
@@ -18,6 +19,7 @@ def _safe_log10(t):
         res[np.isneginf(res) | np.isnan(res)] = very_small_exponent
         res[np.isnan(t)] = np.nan
         return res
+
 
 def _ensure_lower_limit(t, lower_limit):
     return np.maximum(t, lower_limit)

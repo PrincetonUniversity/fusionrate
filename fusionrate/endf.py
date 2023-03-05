@@ -139,7 +139,6 @@ class ENDFCrossSection:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from fusionrate.load_data import load_data_file
 
     endf = ENDFCrossSection("D+T")
 

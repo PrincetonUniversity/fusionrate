@@ -22,7 +22,6 @@ PARAMS = "parameters"
 OBJ = "object"
 
 
-
 class ReactionCore:
     r"""Basic, cross-section-independent reaction data
 
@@ -67,13 +66,14 @@ class ReactionCore:
         return self._name == other._name
 
     def __hash__(self):
-        return hash((self._name, ))
+        return hash((self._name,))
 
     def __str__(self):
         return f"{self.__class__.__name__} {self._name}"
 
     def __repr__(self):
         return f"{self.__class__.__qualname__}({self._name})"
+
 
 def _cross_section_node(obj):
     d = {
@@ -84,6 +84,7 @@ def _cross_section_node(obj):
     }
     return d
 
+
 def _ratecoeff_node(obj):
     d = {
         OBJ: obj,
@@ -93,6 +94,7 @@ def _ratecoeff_node(obj):
     }
     return d
 
+
 def _normalize_energy(e):
     r"""
     e: float or array_like
@@ -101,6 +103,7 @@ def _normalize_energy(e):
     bad_ix = np.logical_or(e < 0.0, ~np.isfinite(e))
     e[bad_ix] = np.nan
     return e
+
 
 def _operate_on_valid(func, e):
     r"""Call func(e) only for positive numbers
@@ -180,7 +183,6 @@ class Reaction:
             self._ratecoeff[dist][ANALYTIC] = d
 
     def _load_integrator(self, dist, **kwargs):
-
         integrator = rate_coefficient_integrator_factory.create(
             self.rcore, self._cross_section[ENDF][FUNC], dist, **kwargs
         )
@@ -282,9 +284,8 @@ class Reaction:
             f" function for {self._name}."
         )
 
-    def get_rate_coefficient_object(self, distribution: str, scheme:str):
+    def get_rate_coefficient_object(self, distribution: str, scheme: str):
         return self._ratecoeff[distribution][scheme][OBJ]
-
 
     def _validate_ratecoeff_opts(
         self, distribution: str, scheme: str, derivatives: bool
@@ -354,30 +355,27 @@ rate_coefficient_x:\n"
 
 
 if __name__ == "__main__":
-    import numpy as np
+    r = Reaction("D+T")
+    ts = np.array([10, 20, 30])
 
-    # r = Reaction("D+T")
-    r = Reaction("p + 6Li")
-    # ts = np.array([10, 20, 30])
+    cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
+    cs = r.cross_section(ts, scheme="analytic", derivatives=True)
 
-    # cs = r.cross_section(ts, scheme="ENDF", derivatives=True)
-    # cs = r.cross_section(ts, scheme="analytic", derivatives=True)
-
-    # s = r.rate_coefficient(
-    #     ts,
-    #     scheme="interpolation",
-    # )
-    # print(s)
-    # s = r.rate_coefficient(
-    #     ts,
-    #     scheme="analytic",
-    #     derivatives=False,
-    # )
-    # print(s)
-    # s = r.rate_coefficient(
-    #     ts,
-    #     scheme="integration",
-    #     derivatives=False,
-    # )
-    # print(s)
+    s = r.rate_coefficient(
+        ts,
+        scheme="interpolation",
+    )
+    print(s)
+    s = r.rate_coefficient(
+        ts,
+        scheme="analytic",
+        derivatives=False,
+    )
+    print(s)
+    s = r.rate_coefficient(
+        ts,
+        scheme="integration",
+        derivatives=False,
+    )
+    print(s)
     r.print_available_functions()

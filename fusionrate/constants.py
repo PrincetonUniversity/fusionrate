@@ -4,6 +4,7 @@ millibarn_meters_squared_to_cubic_centimeter = 1e-25
 
 PROJECT = "fusionrate"
 
+
 class Distributions:
     # Two ions with the same temperature and isotropic
     MAXW = "Maxwellian"
