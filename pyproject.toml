@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=58"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fusionrate"
+version = "0.0.1"
+description = "Fusion cross sections and rate coefficients"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+keywords = ["fusion", "cross section", "rate coefficient"]
+authors = [
+  {name = "Jacob Schwartz", email = "jacob@jaschwartz.net"}
+]
+classifiers=[
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Physics"
+]
+dependencies = [
+  "cubature>=0.16.0",
+  "numpy>=1.23.5",
+  "scipy>=1.10.1",
+  "h5py>=3.8.0",
+]
+
+[project.urls]
+repository = "https://github.com/PlasmaControl/fusionrate"
+
+[tool.setuptools.package-data]
+"fusionrate.data" = ["*.csv", "*.json", "*.txt"]
+
+
