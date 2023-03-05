@@ -11,9 +11,9 @@ from fusionrate.reaction import Reaction
 
 from fusionrate.reactionnames import ALL_REACTIONS
 
-min_log10_temp = -2.0
-max_log10_temp = 4.0
-temperatures = np.logspace(min_log10_temp, max_log10_temp, 300)
+min_temp = 10**-2
+max_temp = 10**4
+temperatures = np.geomspace(min_temp, max_temp, 300)
 
 
 def temperature_limits(temperatures: np.array):

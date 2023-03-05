@@ -19,7 +19,7 @@ def plot_sv(reaction):
     sv = BoschRateCoeff(reaction)
     t_range = sv.prescribed_range
 
-    t = np.logspace(*np.log10(t_range), 100)
+    t = np.geomspace(*t_range, 100)
 
     x_hb = t
     y_hb = sv.rate_coefficient(t) / meters_cubed_in_cm_cubed

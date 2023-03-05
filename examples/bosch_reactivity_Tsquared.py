@@ -19,7 +19,7 @@ def plot_cs(reaction):
     cs = BoschRateCoeff(reaction)
     t_range = cs.prescribed_range
 
-    t = np.logspace(*np.log10(t_range), 100)
+    t = np.geomspace(*t_range, 100)
 
     x_hb = t
     y_hb = cs.rate_coefficient(t) / meters_cubed_in_cm_cubed / t ** 2

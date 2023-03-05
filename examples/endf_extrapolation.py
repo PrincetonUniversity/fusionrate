@@ -20,7 +20,7 @@ def plot_some_data(label):
     x, y = cross_section_data(label)
     lle = LogLogExtrapolation(x, y, linear_extension=True)
 
-    newx = np.logspace(-1, 8, 1000)
+    newx = np.geomspace(0.1, 10**8, 1000)
     p = ax.plot(x, y, label=label)
     c = p[0].get_color()
     ax.plot(newx, lle(newx), ls="dashed", color=c)

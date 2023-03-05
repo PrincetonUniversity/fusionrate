@@ -17,7 +17,7 @@ def plot_cs(reaction):
     cs = BoschCrossSection(reaction)
     e_range = cs.prescribed_range
 
-    e = np.logspace(*np.log10(e_range), 100)
+    e = np.geomspace(*e_range, 100)
 
     x_hb = e * 1000
     y_hb = cs.cross_section(e) / 1000

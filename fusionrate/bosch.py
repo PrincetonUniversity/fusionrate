@@ -630,7 +630,7 @@ if __name__ == "__main__":
 
     bh = BoschCrossSection("T(d,n)4He")
     energy_range = bh.prescribed_range
-    e1 = np.logspace(*np.log10(energy_range), 500)
+    e1 = np.geomspace(*energy_range, 500)
     sigma = bh.cross_section(e1)
     plt.loglog(e1, sigma)
 

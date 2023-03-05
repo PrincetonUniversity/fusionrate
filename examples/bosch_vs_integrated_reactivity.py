@@ -23,7 +23,7 @@ def plot_comparison(reaction):
 
     r = Reaction(reaction)
 
-    t = np.logspace(*np.log10(t_range), 100)
+    t = np.geomspace(*t_range, 100)
 
     x = t
     y_b = sv.rate_coefficient(t) / meters_cubed_in_cm_cubed

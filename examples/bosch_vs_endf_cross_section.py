@@ -28,8 +28,8 @@ beam_target_to_com = m_tar / (m_beam + m_tar)
 cs = BoschCrossSection(reaction)
 upper_limit = cs.prescribed_range[-1]
 
-e = np.logspace(-1, np.log10(upper_limit), 500)
-e2 = np.logspace(np.log10(upper_limit), 8, 500)
+e = np.geomspace(0.1, upper_limit, 500)
+e2 = np.geomspace(upper_limit, 10**8, 500)
 
 fig, ax = plt.subplots()
 ax.set_xscale("log")

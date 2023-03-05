@@ -10,9 +10,9 @@ from fusionrate.reaction import ReactionCore
 
 from fusionrate.reactionnames import ALL_REACTIONS
 
-min_log10_temp = -2.0
-max_log10_temp = 4.0
-temperatures = np.logspace(min_log10_temp, max_log10_temp, 10)
+min_temp = 10**-2
+max_temp = 10**4
+temperatures = np.geomspace(min_temp, max_temp, 10)
 
 t1, t2 = np.meshgrid(temperatures, temperatures)
 
