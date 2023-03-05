@@ -30,7 +30,10 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/PlasmaControl/fusionrate"
 
-[tool.setuptools.package-data]
-"fusionrate.data" = ["*.csv", "*.json", "*.txt"]
-
-
+#pyproject.toml
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = [
+  "tests",
+]
