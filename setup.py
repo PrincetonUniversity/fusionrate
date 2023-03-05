@@ -19,10 +19,10 @@ setuptools.setup(
     ],
     python_requires='>=3.10',
     install_requires=[
-        "cubature >= 0.14.5",
-        "numpy >= 1.22.4",
-        "scipy >= 1.8.1",
-        "h5py >= 3.7.0",
+        "cubature >= 0.16.0",
+        "numpy >= 1.23.5",
+        "scipy >= 1.10.1",
+        "h5py >= 3.8.0",
     ],
     include_package_data=True,
     package_data = {
