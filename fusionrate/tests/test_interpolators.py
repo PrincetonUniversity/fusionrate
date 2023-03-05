@@ -2,12 +2,11 @@ from fusionrate.interpolators import RateCoefficientInterpolator
 
 import unittest
 import numpy as np
-from fusionrate.test.utility import has_nans, no_nans
+from fusionrate.tests.utility import has_nans, no_nans
 from fusionrate.reactionnames import DT_NAME
 
 
 class TestRateCoefficientInterpolator1D(unittest.TestCase):
-
     def setUp(self):
         self.temperatures = np.array([3, 5, 10, 20], dtype=float)  # in keV
         self.array_with_zero = np.array([0, 1], dtype=float)  # in keV

@@ -19,13 +19,13 @@ ALL_REACTIONS = [
     DDT_NAME,
     DDHE3_NAME,
     PLI6_NAME,
-    PB11_NAME,
-    TT_NAME,
-    HT_NAME,
-    HH_NAME,
-    DLI6A_NAME,
-    DLI6N_NAME,
-    DLI6P_NAME,
+#   PB11_NAME,
+#   TT_NAME,
+#   HT_NAME,
+#   HH_NAME,
+#   DLI6A_NAME,
+#   DLI6N_NAME,
+#   DLI6P_NAME,
 ]
 
 

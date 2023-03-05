@@ -1,5 +1,5 @@
 import fusionrate.bosch as bosch
-from fusionrate.test.utility import has_nans, no_nans
+from fusionrate.tests.utility import has_nans, no_nans
 
 import unittest
 import numpy as np
@@ -109,9 +109,7 @@ class TestBoschRateCoeff(unittest.TestCase):
 
     def setUp(self):
         # temperatures in keV
-        self.table_temperatures = np.array(
-            [0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0]
-        )
+        self.table_temperatures = np.array([0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0])
 
     def compare_results(self, r, actual):
         code_results = r.rate_coefficient(self.table_temperatures)

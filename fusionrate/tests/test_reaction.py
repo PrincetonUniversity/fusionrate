@@ -2,17 +2,54 @@ from fusionrate import Reaction
 
 import unittest
 import numpy as np
-from fusionrate.test.utility import has_nans, no_nans, has_zeros, has_negs
-from fusionrate.test.utility import all_finite, all_nonneg
+from fusionrate.tests.utility import has_nans, no_nans, has_zeros, has_negs
+from fusionrate.tests.utility import all_finite, all_nonneg
+from fusionrate.reactionnames import ALL_REACTIONS as all_reactions
 from fusionrate.reactionnames import DT_NAME
 
+import pytest
+
+def sameshape(x, y):
+    assert x.shape == y.shape
+
+okay_values = [0, 1e-3, 1, 10, 1e3, 1e6]
+
+standard_cases = (
+        ([np.nan],    has_nans),
+        ([np.inf],    has_nans),
+        ([-np.inf],   has_nans),
+        ([0],         has_zeros),
+        ([1],         no_nans),
+        (1,           all_nonneg),
+        (1,           all_finite),
+        (okay_values, all_nonneg),
+        (okay_values, all_finite),
+       )
+
+cross_sections_to_test = []
+for reaction in all_reactions:
+    rx = Reaction(reaction)
+    available_cross_sections = rx.available_cross_sections()
+    for scheme in available_cross_sections:
+        for var, func in standard_cases:
+            cross_sections_to_test.append((rx.name, scheme, var, func))
+
+@pytest.mark.parametrize("rx_name, scheme, var, func", cross_sections_to_test)
+def test_cross_section_function(rx_name, scheme, var, func):
+    rx = Reaction(rx_name)
+    result = rx.cross_section(var, scheme=scheme)
+    func(result)
+
+# @pytest.mark.parametrize("rx_name, scheme, var, func", cross_sections_to_test)
+# def test_cross_section_deriv(rx_name, scheme, var, func):
+#     rx = Reaction(rx_name)
+#     result = rx.cross_section(var, scheme=scheme, derivatives=True)
+#     func(result)
 
 class TestReaction(unittest.TestCase):
-
     def setUp(self):
         self.entemps = np.array([3, 5, 10, 20], dtype=float)  # in keV
-        self.twobythree = np.array(
-            [[3, 5], [10, 20], [40, 50]], dtype=float)  # in keV
+        self.twobythree = np.array([[3, 5], [10, 20], [40, 50]], dtype=float)  # in keV
         self.array_with_zero = np.array([0, 1], dtype=float)
         self.array_with_neg = np.array([-1, 1], dtype=float)
         self.array_with_neginf = np.array([-np.inf, 1])
@@ -315,4 +352,4 @@ class TestReaction(unittest.TestCase):
         all_nonneg(result)
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main()

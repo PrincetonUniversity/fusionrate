@@ -203,6 +203,9 @@ class Reaction:
         self.print_available_cross_sections()
         self.print_available_rate_coefficients()
 
+    def available_cross_sections(self):
+        return list(self._cross_section.keys())
+
     def print_available_cross_sections(self):
         print(f"Available cross sections for {self._name}")
         for source, method in self._cross_section.items():

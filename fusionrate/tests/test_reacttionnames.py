@@ -11,12 +11,12 @@ import unittest
 
 
 class TestReactionNameParsing(unittest.TestCase):
-    PROT = 'H'
-    DEU = 'D'
-    TRIT = 'T'
-    HE3 = '³He'
-    LI6 = '⁶Li'
-    B11 = '¹¹B'
+    PROT = "H"
+    DEU = "D"
+    TRIT = "T"
+    HE3 = "³He"
+    LI6 = "⁶Li"
+    B11 = "¹¹B"
 
     def test_t0(self):
         assert self.TRIT == rn.target_species(DT_NAME)
