@@ -376,9 +376,9 @@ class BoschCrossSectionCalc:
         ns1 = a3 + e * (a4 + a5 * e)
         ds1 = b2 + e * (b3 + b4 * e)
         term1 = (
-            -(b1 + e * ds1 + e * (ds1 + e * (b3 + 2 * b4 * e)))
-            * numer
-            / denom**2
+            -(b1 + e * ds1 + e * (ds1 + e * (b3 + 2 * b4 * e))) *
+            numer /
+            denom**2
         )
         term2 = a2 + e * ns1 + e * (ns1 + e * (a4 + 2 * a5 * e)) / denom
         return term1 + term2
@@ -414,11 +414,10 @@ class BoschCrossSectionCalc:
             cm²/keV
         """
         exp_term = np.exp(-self.bg / np.sqrt(e))
-        exp_term * (
-            (self.bg - 2 * e ** (1 / 2)) * self.s(e)
-            + 2 * e ** (3 / 2) * self.ds_de(e)
+        return exp_term * (
+            (self.bg - 2 * e ** (1 / 2)) * self.s(e) +
+            2 * e ** (3 / 2) * self.ds_de(e)
         ) / (2 * e ** (5 / 2))
-        return np.zeros_like(e)
 
 
 class BoschRateCoeffCalc:
@@ -508,10 +507,10 @@ class BoschRateCoeffCalc:
         b = c2 + t * a
         c = 1 - t * b / odd_denom
         d1 = (
-            t
-            * b
-            * (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * t))
-            / odd_denom**2
+            t *
+            b *
+            (c3 + t * (c5 + c7 * t) + t * (c5 + 2 * c7 * t)) /
+            odd_denom**2
         )
         d2 = -t * (c4 + 2 * c6 * t) / odd_denom
         d3 = -b / odd_denom
