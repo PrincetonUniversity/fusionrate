@@ -73,18 +73,19 @@ class BoschCrossSection:
                 )
             self.calculator = BoschCrossSectionCalc(Bg, a, b)
         elif has_multiple_ranges:
-            if energy_range == "full":
-                self.calculator = BoschHybridCrossSectionCalc(
-                    Bg, a, b, coeffs["transition"]
-                )
-            elif energy_range == "lower":
-                self.calculator = BoschCrossSectionCalc(Bg, a[0], b[0])
-            elif energy_range == "upper":
-                self.calculator = BoschCrossSectionCalc(Bg, a[1], b[1])
-            else:
-                raise ValueError(
-                    f"Unknown energy range '{energy_range}'; choices are 'full', 'upper', and 'lower'."
-                )
+            match energy_range:
+                case "full":
+                    self.calculator = BoschHybridCrossSectionCalc(
+                        Bg, a, b, coeffs["transition"]
+                    )
+                case "lower":
+                    self.calculator = BoschCrossSectionCalc(Bg, a[0], b[0])
+                case "upper":
+                    self.calculator = BoschCrossSectionCalc(Bg, a[1], b[1])
+                case _:
+                    raise ValueError(
+                        f"Unknown energy range '{energy_range}'; choices are 'full', 'upper', and 'lower'."
+                    )
 
     @classmethod
     def provides_reactions(cls):
