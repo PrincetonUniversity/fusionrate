@@ -10,6 +10,8 @@ from fusionrate.interpolators import RateCoefficientInterpolator
 from fusionrate.constants import Distributions
 from fusionrate.load_data import ratecoeff_data_exists
 
+import functools
+
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
 INTEGRATION = "integration"
@@ -78,11 +80,82 @@ class ReactionCore:
 def _cross_section_node(obj):
     d = {
         OBJ: obj,
-        PARAMS: obj.parameters,
+        PARAMS: obj.parameters[0],
         FUNC: obj.cross_section,
         DERIV: obj.derivative,
     }
     return d
+
+
+def _wrap_for_zero_when_out_of_bounds(func, bounds):
+    r"""Make a function return zero when its input is outside bounds
+
+    Parameters
+    ----------
+    func: callable
+        A function of one argument
+
+    bounds: list
+        A two-element list [low, high].
+
+    """
+    @functools.wraps(func)
+    def wrapper(x, **kwargs):
+        result = np.zeros_like(x)
+        low, high = bounds
+        inbounds = (x > low) & (x < high)
+        result[inbounds] = func(x[inbounds], **kwargs)
+        return result
+
+    return wrapper
+
+def _wrap_for_zero_below_lower_bound(func, bounds):
+    r"""Make a function return zero when its input is below the lower bound
+
+    Parameters
+    ----------
+    func: callable
+        A function of one argument
+
+    bounds: list
+        A two-element list [low, high].
+
+    """
+    @functools.wraps(func)
+    def wrapper(x, **kwargs):
+        result = np.zeros_like(x)
+        low, high = bounds
+        acceptable = (x > low)
+        result[acceptable] = func(x[acceptable], **kwargs)
+        return result
+
+    return wrapper
+
+def _move_values_in_bounds(x, bounds):
+    result = x.copy()
+    low, high = bounds
+    result[x < low] = low
+    result[x > high] = high
+    return result
+
+def _wrap_to_move_values_in_bounds(func, bounds):
+    r"""
+
+    Parameters
+    ----------
+    func: callable
+        A function of one argument
+
+    bounds: list
+        A two-element list [low, high].
+
+    """
+    @functools.wraps(func)
+    def wrapper(x, **kwargs):
+        corrected_values = _move_values_in_bounds(x, bounds)
+        return func(corrected_values, **kwargs)
+
+    return wrapper
 
 
 def _ratecoeff_node(obj):
@@ -96,8 +169,27 @@ def _ratecoeff_node(obj):
 
 
 def _normalize_energy(e):
-    r"""
+    r"""Set negative, infinite, and nan values to nan
+
+    Parameters
+    ----------
     e: float or array_like
+
+    Returns
+    -------
+    A new array with the same nonnegative, finite elements as e,
+    but np.nan everywhere else.
+
+    Notes
+    -----
+    This returns a new copy of the array.
+
+    Developer notes
+    ---------------
+    This function has not been benchmarked and may be improved, perhaps by
+    altering the same array rather than returning a new one (only using
+    .astype(float) if the type is not float), or by avoiding the
+    logical_or and instead doing two set (=) operations.
     """
     e = np.atleast_1d(e).astype(float)
     bad_ix = np.logical_or(e < 0.0, ~np.isfinite(e))
@@ -106,20 +198,18 @@ def _normalize_energy(e):
 
 
 def _operate_on_valid(func, e):
-    r"""Call func(e) only for positive numbers
-
-    Keeps NaNs and 0s as they are.
+    r"""Call func(e) only for non-negative numbers
 
     Parameters
     ----------
-    func:
-        a function which takes one argument
-    e: np.array
+    func: callable
+        A function which takes one argument
+    e: np.ndarray
+        A numpy array representing energies or temperatures.
 
     """
     result = np.full(e.shape, np.nan)
-    result[e == 0.0] = 0.0
-    ix = e > 0
+    ix = e >= 0
     if np.any(ix):
         result[ix] = func(e[ix])
     return result
@@ -168,11 +258,17 @@ class Reaction:
         if self.has_analytic_fit:
             obj = BoschCrossSection(self._name)
             d = _cross_section_node(obj)
+            bounds = d[PARAMS].bounds
+            d[FUNC] = _wrap_for_zero_when_out_of_bounds(d[FUNC], bounds)
+            d[DERIV] = _wrap_to_move_values_in_bounds(d[DERIV], bounds)
             self._cross_section[ANALYTIC] = d
 
     def _load_cross_section_ENDF(self):
         obj = ENDFCrossSection(self._name)
         d = _cross_section_node(obj)
+        bounds = d[PARAMS].bounds
+        d[FUNC] = _wrap_for_zero_below_lower_bound(d[FUNC], bounds)
+        d[DERIV] = _wrap_to_move_values_in_bounds(d[DERIV], bounds)
         self._cross_section[ENDF] = d
 
     def _load_ratecoeff_analytic(self, dist, **kwargs):

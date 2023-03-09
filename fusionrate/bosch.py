@@ -5,6 +5,7 @@ from fusionrate.reactionnames import DDHE3_NAME
 from fusionrate.reactionnames import DDT_NAME
 from fusionrate.reactionnames import DHE3_NAME
 from fusionrate.reactionnames import DT_NAME
+from fusionrate.parameter import Parameter
 
 
 class BoschCrossSection:
@@ -141,7 +142,7 @@ class BoschCrossSection:
 
     @property
     def parameters(self):
-        return (("Energy", self.prescribed_range, "keV"))
+        return (Parameter("Energy", self.prescribed_range, "keV"), )
 
 
 class BoschRateCoeff:
@@ -252,7 +253,7 @@ class BoschRateCoeff:
 
     @property
     def parameters(self):
-        return (("Temperature", self.prescribed_range, "keV"))
+        return (Parameter("Temperature", self.prescribed_range, "keV"), )
 
 
 class BoschHybridCrossSectionCalc:
@@ -628,10 +629,11 @@ class BoschRateCoeffCalc:
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    bh = BoschCrossSection("T(d,n)4He")
+    bh = BoschCrossSection("D(d,p)T")
     energy_range = bh.prescribed_range
     e1 = np.geomspace(*energy_range, 500)
     sigma = bh.cross_section(e1)
+    print(bh.cross_section(1e-2))
     plt.loglog(e1, sigma)
 
     plt.show()

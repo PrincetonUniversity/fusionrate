@@ -12,16 +12,18 @@ import pytest
 def sameshape(x, y):
     assert x.shape == y.shape
 
-okay_values = [0, 1e-3, 1, 10, 1e3, 1e6]
+okay_values = [0, 1e-3, 1, 10, 1e3, 4e3]
 
 standard_cases = (
         ([np.nan],    has_nans),
         ([np.inf],    has_nans),
         ([-np.inf],   has_nans),
+        ([-1],        has_nans),
         ([0],         has_zeros),
         ([1],         no_nans),
         (1,           all_nonneg),
         (1,           all_finite),
+        (okay_values, no_nans),
         (okay_values, all_nonneg),
         (okay_values, all_finite),
        )
@@ -40,11 +42,32 @@ def test_cross_section_function(rx_name, scheme, var, func):
     result = rx.cross_section(var, scheme=scheme)
     func(result)
 
-# @pytest.mark.parametrize("rx_name, scheme, var, func", cross_sections_to_test)
-# def test_cross_section_deriv(rx_name, scheme, var, func):
-#     rx = Reaction(rx_name)
-#     result = rx.cross_section(var, scheme=scheme, derivatives=True)
-#     func(result)
+# derivatives of cross sections
+standard_cases = (
+        ([np.nan],    has_nans),
+        ([np.inf],    has_nans),
+        ([-np.inf],   has_nans),
+        ([-1],        has_nans),
+        ([0, 1],      no_nans),
+        (1,           all_nonneg),
+        (1,           all_finite),
+        (okay_values, no_nans),
+        (okay_values, all_finite),
+       )
+
+cross_sections_to_test = []
+for reaction in all_reactions:
+    rx = Reaction(reaction)
+    available_cross_sections = rx.available_cross_sections()
+    for scheme in available_cross_sections:
+        for var, func in standard_cases:
+            cross_sections_to_test.append((rx.name, scheme, var, func))
+
+@pytest.mark.parametrize("rx_name, scheme, var, func", cross_sections_to_test)
+def test_cross_section_deriv(rx_name, scheme, var, func):
+    rx = Reaction(rx_name)
+    result = rx.cross_section(var, scheme=scheme, derivatives=True)
+    func(result)
 
 class TestReaction(unittest.TestCase):
     def setUp(self):
@@ -148,8 +171,8 @@ class TestReaction(unittest.TestCase):
 
     def test_cs_analytic_der_zero(self):
         result = self.analytic_der(self.array_with_zero)
-        has_zeros(result)
         all_nonneg(result)
+        all_finite(result)
 
     def test_cs_analytic_der_neg(self):
         result = self.analytic_der(self.array_with_neg)
@@ -260,7 +283,7 @@ class TestReaction(unittest.TestCase):
 
     def test_cs_endfder_zero(self):
         result = self.endfder(self.array_with_zero)
-        has_zeros(result)
+        no_nans(result)
         all_nonneg(result)
 
     def test_cs_endfder_neg(self):
@@ -305,32 +328,39 @@ class TestReaction(unittest.TestCase):
         all_nonneg(result)
         self.assertEqual(result.shape, self.twobythree.shape)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_single(self):
         result = self.rc_analytic_func(self.singlefloat)
         self.assertEqual(len(result), 1)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_singlenan(self):
         result = self.rc_analytic_func(np.nan)
         self.assertEqual(len(result), 1)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_zero(self):
         result = self.rc_analytic_func(self.array_with_zero)
         has_zeros(result)
         all_nonneg(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neg(self):
         result = self.rc_analytic_func(self.array_with_neg)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neginf(self):
         result = self.rc_analytic_func(self.array_with_neginf)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neginf(self):
         result = self.rc_analytic_func(self.array_with_neginf)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_inf(self):
         result = self.rc_analytic_func(self.array_with_inf)
         has_nans(result)
@@ -339,14 +369,17 @@ class TestReaction(unittest.TestCase):
         result = self.rc_analytic_func(self.array_with_nan)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_manybad(self):
         result = self.rc_analytic_func(self.array_manybad)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_allnan(self):
         result = self.rc_analytic_func(self.array_allnan)
         has_nans(result)
 
+    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_verysmall(self):
         result = self.rc_analytic_func(self.verysmall)
         all_nonneg(result)

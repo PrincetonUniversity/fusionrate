@@ -4,6 +4,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 import fusionrate.reactionnames as rn
 from fusionrate.ion_data import ion_mass
 from fusionrate.load_data import cross_section_data
+from fusionrate.parameter import Parameter
 
 
 class LogLogExtrapolation:
@@ -134,13 +135,14 @@ class ENDFCrossSection:
 
     @property
     def parameters(self):
-        return (("Energy", self.prescribed_range, "keV"))
+        return (Parameter("Energy", self.prescribed_range, "keV"), )
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     endf = ENDFCrossSection("D+T")
+    print(endf.parameters)
 
     newx = np.logspace(0, 3, 100)
 
