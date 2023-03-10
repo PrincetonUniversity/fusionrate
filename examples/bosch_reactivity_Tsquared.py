@@ -17,9 +17,9 @@ meters_cubed_in_cm_cubed = 1e6
 
 def plot_cs(reaction):
     cs = BoschRateCoeff(reaction)
-    t_range = cs.prescribed_range
+    t_domain = cs.prescribed_domain
 
-    t = np.geomspace(*t_range, 100)
+    t = np.geomspace(*t_domain, 100)
 
     x_hb = t
     y_hb = cs.rate_coefficient(t) / meters_cubed_in_cm_cubed / t ** 2
@@ -38,7 +38,7 @@ ax[0].set_xlim([0.1, 2e2])
 ax[0].set_ylim([1e-35, 1e-23])
 ax[0].set_xlabel("Temperature/keV")
 ax[0].set_ylabel("Norm. rate coefficient / (m³/s · keV²)")
-ax[0].set_title("Wide-range plot")
+ax[0].set_title("Wide-domain plot")
 
 ax[1].set_xscale("log")
 ax[1].set_yscale("log")

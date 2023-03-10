@@ -125,17 +125,17 @@ class ENDFCrossSection:
         return self.interp.derivatives(e)
 
     @property
-    def prescribed_range(self):
+    def prescribed_domain(self):
         r"""
         Returns
         -------
-        [min, max] of COM energy range in keV
+        [min, max] of COM energy domain in keV
         """
         return [min(self.x), max(self.x)]
 
     @property
     def parameters(self):
-        return (Parameter("Energy", self.prescribed_range, "keV"), )
+        return (Parameter("Energy", self.prescribed_domain, "keV"), )
 
 
 if __name__ == "__main__":

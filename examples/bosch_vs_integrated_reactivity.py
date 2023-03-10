@@ -19,11 +19,11 @@ meters_cubed_in_cm_cubed = 1e6
 
 def plot_comparison(reaction):
     sv = BoschRateCoeff(reaction)
-    t_range = sv.prescribed_range
+    t_domain = sv.prescribed_domain
 
     r = Reaction(reaction)
 
-    t = np.geomspace(*t_range, 100)
+    t = np.geomspace(*t_domain, 100)
 
     x = t
     y_b = sv.rate_coefficient(t) / meters_cubed_in_cm_cubed
@@ -41,6 +41,6 @@ ax.grid()
 ax.set_ylim(0, 2)
 ax.set_xlabel("Temperature/keV")
 ax.set_ylabel("Rate coefficient / (m³/s)")
-ax.set_title("Wide-range plot")
+ax.set_title("Wide-domain plot")
 ax.legend()
 plt.show()

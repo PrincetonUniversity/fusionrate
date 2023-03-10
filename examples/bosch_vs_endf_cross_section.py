@@ -26,7 +26,7 @@ beam_target_to_com = m_tar / (m_beam + m_tar)
 
 # center of mass energies
 cs = BoschCrossSection(reaction)
-upper_limit = cs.prescribed_range[-1]
+upper_limit = cs.prescribed_domain[-1]
 
 e = np.geomspace(0.1, upper_limit, 500)
 e2 = np.geomspace(upper_limit, 10**8, 500)
@@ -46,7 +46,7 @@ y_hb = cs.cross_section(e) * millibarns_TO_barns
 
 ax.plot(x_hb, y_hb, label="Bosch-Hale")
 
-# Extension beyond the indicated safe range
+# Extension beyond the indicated safe domain
 x_hb = e2 * keV_TO_eV
 y_hb = cs.cross_section(e2) * millibarns_TO_barns
 ax.plot(x_hb, y_hb, color="tab:blue", ls="dashed")

@@ -15,9 +15,9 @@ fig, ax = plt.subplots(1, 2)
 
 def plot_cs(reaction):
     cs = BoschCrossSection(reaction)
-    e_range = cs.prescribed_range
+    e_domain = cs.prescribed_domain
 
-    e = np.geomspace(*e_range, 100)
+    e = np.geomspace(*e_domain, 100)
 
     x_hb = e * 1000
     y_hb = cs.cross_section(e) / 1000
@@ -36,7 +36,7 @@ ax[0].set_xlim([1e3, 1e7])
 ax[0].set_ylim([1e-25, 1e1])
 ax[0].set_xlabel("COM energy/eV")
 ax[0].set_ylabel("Cross section/barns")
-ax[0].set_title("Wide-range plot")
+ax[0].set_title("Wide-domain plot")
 
 ax[1].set_xscale("log")
 ax[1].set_yscale("log")

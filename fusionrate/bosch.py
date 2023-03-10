@@ -28,7 +28,7 @@ class BoschCrossSection:
                 [6.38e1, -9.95e-1, 6.981e-5, 1.728e-4],
                 [-8.4127e-3, 4.7983e-6, -1.0748e-9, 8.5184e-14],
             ],
-            "range": [[0.5, 550], [550, 4700]],
+            "domain": [[0.5, 550], [550, 4700]],
             "transition": 530,
         },
         DHE3_NAME: {
@@ -41,40 +41,40 @@ class BoschCrossSection:
                 [-3.1995e-3, -8.5530e-6, 5.9014e-8, 0],
                 [-2.6830e-3, 1.1633e-6, -2.1332e-10, 1.425e-14],
             ],
-            "range": [[0.3, 900], [900, 4800]],
+            "domain": [[0.3, 900], [900, 4800]],
             "transition": 900,
         },
         DDT_NAME: {
             "Bg": 31.3970,
             "a": [5.5576e4, 2.1054e2, -3.2638e-2, 1.4987e-6, 1.8181e-10],
             "b": [0, 0, 0, 0],
-            "range": [0.5, 5000],
+            "domain": [0.5, 5000],
         },
         DDHE3_NAME: {
             "Bg": 31.3970,
             "a": [5.3701e4, 3.3027e2, -1.2706e-1, 2.9327e-5, -2.5151e-9],
             "b": [0, 0, 0, 0],
-            "range": [0.5, 4900],
+            "domain": [0.5, 4900],
         },
     }
 
-    def __init__(self, raw_reaction_name, energy_range="full"):
+    def __init__(self, raw_reaction_name, energy_domain="full"):
         self.reaction_name = bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         a = coeffs["a"]
         b = coeffs["b"]
-        has_multiple_ranges = type(a[0]) == list
-        if not has_multiple_ranges:
-            if energy_range != "full":
+        has_multiple_domains = type(a[0]) == list
+        if not has_multiple_domains:
+            if energy_domain != "full":
                 raise ValueError(
-                    "This reaction only has one energy range. "
-                    "Keyword energy_range should be set to 'full' or left "
+                    "This reaction only has one energy domain. "
+                    "Keyword energy_domain should be set to 'full' or left "
                     "unspecified."
                 )
             self.calculator = BoschCrossSectionCalc(Bg, a, b)
-        elif has_multiple_ranges:
-            match energy_range:
+        elif has_multiple_domains:
+            match energy_domain:
                 case "full":
                     self.calculator = BoschHybridCrossSectionCalc(
                         Bg, a, b, coeffs["transition"]
@@ -85,7 +85,7 @@ class BoschCrossSection:
                     self.calculator = BoschCrossSectionCalc(Bg, a[1], b[1])
                 case _:
                     raise ValueError(
-                        f"Unknown energy range '{energy_range}'; choices are 'full', 'upper', and 'lower'."
+                        f"Unknown energy domain '{energy_domain}'; choices are 'full', 'upper', and 'lower'."
                     )
 
     @classmethod
@@ -127,22 +127,22 @@ class BoschCrossSection:
         return self.reaction_name
 
     @property
-    def prescribed_range(self):
-        r"""Energy range in keV over which the reaction is valid
+    def prescribed_domain(self):
+        r"""Energy domain in keV over which the reaction is valid
 
         Returns
         -------
         a two-element list [low, high]
         """
-        r = self.COEFFICIENTS[self.reaction_name]["range"]
-        # for the two reactions with 'upper' and 'lower' ranges
+        r = self.COEFFICIENTS[self.reaction_name]["domain"]
+        # for the two reactions with 'upper' and 'lower' domains
         if type(r[0]) == list:
             r = [r[0][0], r[-1][-1]]
         return r
 
     @property
     def parameters(self):
-        return (Parameter("Energy", self.prescribed_range, "keV"), )
+        return (Parameter("Energy", self.prescribed_domain, "keV"), )
 
 
 class BoschRateCoeff:
@@ -167,7 +167,7 @@ class BoschRateCoeff:
                 -1.06750e-4,
                 1.36600e-5,
             ],
-            "range": [0.2, 100],
+            "domain": [0.2, 100],
         },
         DHE3_NAME: {
             "Bg": 68.7508,
@@ -181,19 +181,19 @@ class BoschRateCoeff:
                 0,
                 0,
             ],
-            "range": [0.5, 190],
+            "domain": [0.5, 190],
         },
         DDHE3_NAME: {
             "Bg": 31.3970,
             "mrc²": 937814,
             "c": [5.43360e-12, 5.85778e-3, 7.68222e-3, 0, -2.96400e-6, 0, 0],
-            "range": [0.2, 100],
+            "domain": [0.2, 100],
         },
         DDT_NAME: {
             "Bg": 31.3970,
             "mrc²": 937814,
             "c": [5.65718e-12, 3.41267e-3, 1.99167e-3, 0, 1.05060e-5, 0, 0],
-            "range": [0.2, 100],
+            "domain": [0.2, 100],
         },
     }
 
@@ -248,16 +248,16 @@ class BoschRateCoeff:
         return self.reaction_name
 
     @property
-    def prescribed_range(self):
-        return self.COEFFICIENTS[self.reaction_name]["range"]
+    def prescribed_domain(self):
+        return self.COEFFICIENTS[self.reaction_name]["domain"]
 
     @property
     def parameters(self):
-        return (Parameter("Temperature", self.prescribed_range, "keV"), )
+        return (Parameter("Temperature", self.prescribed_domain, "keV"), )
 
 
 class BoschHybridCrossSectionCalc:
-    r"""Separate fits for two energy ranges
+    r"""Separate fits for two energy domains
 
     References
     ----------
@@ -630,8 +630,8 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     bh = BoschCrossSection("D(d,p)T")
-    energy_range = bh.prescribed_range
-    e1 = np.geomspace(*energy_range, 500)
+    energy_domain = bh.prescribed_domain
+    e1 = np.geomspace(*energy_domain, 500)
     sigma = bh.cross_section(e1)
     print(bh.cross_section(1e-2))
     plt.loglog(e1, sigma)
