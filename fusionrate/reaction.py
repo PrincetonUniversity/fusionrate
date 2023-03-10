@@ -87,6 +87,16 @@ def _cross_section_node(obj):
     return d
 
 
+def _ratecoeff_node(obj):
+    d = {
+        OBJ: obj,
+        PARAMS: obj.parameters,
+        FUNC: obj.rate_coefficient,
+        DERIV: obj.derivative,
+    }
+    return d
+
+
 def _wrap_for_zero_when_out_of_bounds(func, bounds):
     r"""Make a function return zero when its input is outside bounds
 
@@ -99,6 +109,7 @@ def _wrap_for_zero_when_out_of_bounds(func, bounds):
         A two-element list [low, high].
 
     """
+
     @functools.wraps(func)
     def wrapper(x, **kwargs):
         result = np.zeros_like(x)
@@ -108,6 +119,7 @@ def _wrap_for_zero_when_out_of_bounds(func, bounds):
         return result
 
     return wrapper
+
 
 def _wrap_for_zero_below_lower_bound(func, bounds):
     r"""Make a function return zero when its input is below the lower bound
@@ -121,15 +133,17 @@ def _wrap_for_zero_below_lower_bound(func, bounds):
         A two-element list [low, high].
 
     """
+
     @functools.wraps(func)
     def wrapper(x, **kwargs):
         result = np.zeros_like(x)
         low, high = bounds
-        acceptable = (x > low)
+        acceptable = x > low
         result[acceptable] = func(x[acceptable], **kwargs)
         return result
 
     return wrapper
+
 
 def _move_values_in_bounds(x, bounds):
     result = x.copy()
@@ -137,6 +151,7 @@ def _move_values_in_bounds(x, bounds):
     result[x < low] = low
     result[x > high] = high
     return result
+
 
 def _wrap_to_move_values_in_bounds(func, bounds):
     r"""
@@ -150,22 +165,13 @@ def _wrap_to_move_values_in_bounds(func, bounds):
         A two-element list [low, high].
 
     """
+
     @functools.wraps(func)
     def wrapper(x, **kwargs):
         corrected_values = _move_values_in_bounds(x, bounds)
         return func(corrected_values, **kwargs)
 
     return wrapper
-
-
-def _ratecoeff_node(obj):
-    d = {
-        OBJ: obj,
-        PARAMS: obj.parameters,
-        FUNC: obj.rate_coefficient,
-        DERIV: obj.derivative,
-    }
-    return d
 
 
 def _normalize_energy(e):
