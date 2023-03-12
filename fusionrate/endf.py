@@ -1,10 +1,13 @@
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.optimize import root
 
 import fusionrate.reactionnames as rn
 from fusionrate.ion_data import ion_mass
 from fusionrate.load_data import cross_section_data
 from fusionrate.parameter import Parameter
+
+import functools
 
 
 class LogLogExtrapolation:
@@ -12,7 +15,6 @@ class LogLogExtrapolation:
 
     with a straight-line right end in log-log space
     """
-    SMALL = 1e-50  # to prevent errors with log of 0
 
     def __init__(self, x, y, linear_extension=True):
         r"""
@@ -23,7 +25,7 @@ class LogLogExtrapolation:
         self.y = y
         self.max_x = max(x)
         self.min_x = min(x)
-        logx = np.log(x + self.SMALL)
+        logx = np.log(x)
         logy = np.log(y)
         data = np.array([logx, logy]).T
 
@@ -55,9 +57,12 @@ class LogLogExtrapolation:
             Whether this is beam-target energy or c.o.m. energy
             is up to the data.
         """
-        log_new = np.log(newx + self.SMALL)
-        log_newy = self.interpolator(log_new)
+        log_newx = np.log(newx)
+        log_newy = self.interpolator(log_newx)
         return np.exp(log_newy)
+
+    def query_in_loglog_space(self, log_newx):
+        return self.interpolator(log_newx)
 
     def _ensure_derivatives(self):
         if not self._derivinterp:
@@ -65,7 +70,7 @@ class LogLogExtrapolation:
 
     def derivatives(self, newx):
         self._ensure_derivatives()
-        log_newx = np.log(newx + self.SMALL)
+        log_newx = np.log(newx)
         log_newy = self.interpolator(log_newx)
         val = np.exp(log_newy)
 
@@ -75,6 +80,9 @@ class LogLogExtrapolation:
 
 
 class ENDFCrossSection:
+    VERY_LOW_CROSS_SECTION = 1e-200
+    UPPER_LIMIT_MULTIPLIER = 10
+
     def __init__(self, r):
         r"""
         s: reaction name string
@@ -124,18 +132,53 @@ class ENDFCrossSection:
     def derivative(self, e):
         return self.interp.derivatives(e)
 
-    @property
+    @functools.cached_property
     def prescribed_domain(self):
-        r"""
+        r"""A "safe" domain in energy space
         Returns
         -------
         [min, max] of COM energy domain in keV
         """
         return [min(self.x), max(self.x)]
 
-    @property
+    def _solve_for_energy_of_low_cross_section(self, cross_section):
+        r"""Find energy at which cross section is some value
+
+        Parameters
+        ----------
+        cross_section: float
+            Value in mb. Must be lower than the lower bound cross section.
+
+        Returns
+        -------
+        float, energy in keV
+        """
+        y_goal = np.log(cross_section)
+
+        f = lambda energy: self.interp.query_in_loglog_space(energy) - y_goal
+        guess = min(self.x) / 10
+        log_of_energy = root(f, x0=guess).x[0]
+        return np.exp(log_of_energy)
+
+    @functools.cached_property
+    def extrapolable_domain(self):
+        r"""A wider, but hopefully reasonable, domain in energy space
+
+        Returns
+        -------
+        [min, max] of COM energy domain in keV
+        """
+        low_cross_section = self.VERY_LOW_CROSS_SECTION
+        very_low_energy = self._solve_for_energy_of_low_cross_section(
+            low_cross_section
+        )
+
+        reasonable_upper_bound = max(self.x) * self.UPPER_LIMIT_MULTIPLIER
+        return [very_low_energy, reasonable_upper_bound]
+
+    @functools.cached_property
     def parameters(self):
-        return (Parameter("Energy", self.prescribed_domain, "keV"), )
+        return (Parameter("Energy", self.prescribed_domain, "keV"),)
 
 
 if __name__ == "__main__":
