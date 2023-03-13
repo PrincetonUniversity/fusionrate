@@ -457,10 +457,8 @@ rate_coefficient_x:\n"
 
         node = self._ratecoeff[distribution][scheme]
 
-        if not derivatives:
-            func = node[FUNC]
-        else:
-            func = node[DERIV]
+        key = DERIV if derivatives else FUNC
+        func = node[key]
 
         return func(*arrayed_args, **kwargs)
 
