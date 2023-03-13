@@ -11,6 +11,7 @@ from fusionrate.constants import Distributions
 from fusionrate.load_data import ratecoeff_data_exists
 
 import functools
+from icecream import ic
 
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
@@ -173,7 +174,6 @@ def _wrap_to_move_values_in_bounds(func, bounds):
 
     return wrapper
 
-
 def _normalize_energy(e):
     r"""Set negative, infinite, and nan values to nan
 
@@ -202,6 +202,29 @@ def _normalize_energy(e):
     e[bad_ix] = np.nan
     return e
 
+def _operate_on_valid_entries_of_arrays(func, *args, **kwargs):
+    """Apply a function to non-NaN array entries
+
+    Parameters
+    ----------
+    func: callable
+        A function which takes one or more arguments
+    *args: one or more np.ndarrays
+        These do not need to be the same shape, but they must be broadcastable.
+
+    Returns
+    -------
+    A np.ndarray with the broadcasted shape
+    """
+    results = np.full(np.broadcast(*args).shape, np.nan)
+
+    status = [~np.isnan(arg) for arg in args]
+    broadcasted_arrays = np.broadcast_arrays(*args)
+    all_ok = np.all(np.broadcast_arrays(*status), axis=0)
+    valid_inputs = [bca[all_ok] for bca in broadcasted_arrays]
+
+    results[all_ok] = func(*valid_inputs, **kwargs)
+    return results
 
 def _operate_on_valid(func, e):
     r"""Call func(e) only for non-negative numbers
@@ -453,14 +476,12 @@ rate_coefficient_x:\n"
         """
         self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
-        arrayed_args = [np.atleast_1d(a) for a in args]
-
+        normalized_args = [_normalize_energy(arg) for arg in args]
         node = self._ratecoeff[distribution][scheme]
-
         key = DERIV if derivatives else FUNC
         func = node[key]
 
-        return func(*arrayed_args, **kwargs)
+        return _operate_on_valid_entries_of_arrays(func, *normalized_args, **kwargs)
 
 
 if __name__ == "__main__":
