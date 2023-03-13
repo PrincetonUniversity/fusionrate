@@ -12,6 +12,9 @@ import pytest
 def has_shape(x, yshape):
     assert x.shape == yshape
 
+def is_empty(x):
+    assert len(x) == 0
+
 # all the functions herein take values in keV
 okay_values = [0, 1e-3, 1, 10, 1e3, 4e3]
 
@@ -19,6 +22,7 @@ peta_eV = [1e12]
 googol_eV = [1e97]
 
 standard_cases = (
+        ([],          is_empty),
         ([np.nan],    has_nans),
         ([np.inf],    has_nans),
         ([-np.inf],   has_nans),
