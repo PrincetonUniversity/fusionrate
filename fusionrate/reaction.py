@@ -216,8 +216,7 @@ def _operate_on_valid(func, e):
     """
     result = np.full(e.shape, np.nan)
     ix = e >= 0
-    if np.any(ix):
-        result[ix] = func(e[ix])
+    result[ix] = func(e[ix])
     return result
 
 
