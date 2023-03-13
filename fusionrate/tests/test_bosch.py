@@ -1,9 +1,12 @@
 import fusionrate.bosch as bosch
-from fusionrate.tests.utility import has_nans, no_nans
+from fusionrate.tests.utility import has_nans
 
 import unittest
 import numpy as np
 
+# These tests focus on ensuring the correctness of the functions, given
+# reasonable values, by comparing to results in the Bosch Hale paper.
+# They don't test the behavior under bad or unreasonable inputs.
 
 class TestBoschCrossSection(unittest.TestCase):
     r"""
