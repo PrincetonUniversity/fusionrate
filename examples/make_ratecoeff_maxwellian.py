@@ -18,8 +18,8 @@ temperatures = np.geomspace(min_temp, max_temp, 300)
 
 def temperature_limits(temperatures: np.array):
     return (
-        min_log10_temp,
-        max_log10_temp,
+        np.log10(min_temp),
+        np.log10(max_temp),
     )
 
 
