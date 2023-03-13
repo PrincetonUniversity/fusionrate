@@ -147,7 +147,7 @@ class ENDFCrossSection:
         Parameters
         ----------
         cross_section: float
-            Value in mb. Must be lower than the lower bound cross section.
+            Value in mb. Should be lower than the lower bound cross section.
 
         Returns
         -------
