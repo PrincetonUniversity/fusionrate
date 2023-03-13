@@ -272,7 +272,7 @@ class Reaction:
     def _load_cross_section_ENDF(self):
         obj = ENDFCrossSection(self._name)
         d = _cross_section_node(obj)
-        bounds = d[PARAMS].bounds
+        bounds = d[PARAMS].extrapolable_bounds
         d[FUNC] = _wrap_for_zero_below_lower_bound(d[FUNC], bounds)
         d[DERIV] = _wrap_to_move_values_in_bounds(d[DERIV], bounds)
         self._cross_section[ENDF] = d
@@ -313,7 +313,17 @@ class Reaction:
     def print_available_cross_sections(self):
         print(f"Available cross sections for {self._name}")
         for source, method in self._cross_section.items():
-            print(f"    {source}")
+            params = method[PARAMS]
+            bounds = params.bounds
+            unit = params.unit
+            bounds_message = f"[{bounds[0]:.3f} to {bounds[1]:.3g} {unit}]"
+
+            eb = params.extrapolable_bounds
+            extra_bounds_message = ""
+            if eb[0] < bounds[0] or eb[1] > bounds[1]:
+                extra_bounds_message = f", extrapolable to [{eb[0]:.3f} to {eb[1]:.3g} {unit}]"
+
+            print(f"    {source}, {bounds_message}{extra_bounds_message}")
 
     def loaded_distributions(self):
         return list(self._ratecoeff.keys())
@@ -467,17 +477,14 @@ if __name__ == "__main__":
         ts,
         scheme="interpolation",
     )
-    print(s)
     s = r.rate_coefficient(
         ts,
         scheme="analytic",
         derivatives=False,
     )
-    print(s)
     s = r.rate_coefficient(
         ts,
         scheme="integration",
         derivatives=False,
     )
-    print(s)
     r.print_available_functions()

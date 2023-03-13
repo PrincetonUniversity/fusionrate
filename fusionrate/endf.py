@@ -178,16 +178,33 @@ class ENDFCrossSection:
 
     @functools.cached_property
     def parameters(self):
-        return (Parameter("Energy", self.prescribed_domain, "keV"),)
+        return (
+            Parameter(
+                name="Energy",
+                bounds=self.prescribed_domain,
+                extrapolable_bounds=self.extrapolable_domain,
+                unit="keV",
+            ),
+        )
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    endf = ENDFCrossSection("D+T")
-    print(endf.parameters)
+    rx = (
+        "T(d,n)4He",
+        "D(d,n)3He",
+        "D(d,p)T",
+        "3He(d,p)4He",
+    )
 
-    newx = np.logspace(0, 3, 100)
+    for r in rx:
+        endf = ENDFCrossSection(r)
 
-    plt.loglog(newx, endf(newx))
+        safex = np.geomspace(*endf.prescribed_domain, 100)
+        extendx = np.geomspace(*endf.extrapolable_domain, 100)
+
+        plt.loglog(safex, endf(safex))
+        plt.loglog(extendx, endf(extendx), ls="dashed")
+
     plt.show()

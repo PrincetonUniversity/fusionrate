@@ -3,6 +3,7 @@ import scipy.interpolate
 
 from fusionrate.constants import Distributions
 from fusionrate.load_data import load_ratecoeff_hdf5
+from fusionrate.parameter import Parameter
 
 
 def _safe_log10(t):
@@ -56,6 +57,7 @@ class HdfRateCoefficientInterpolator:
         ]
 
         self._raw_data = dataset[:]
+        # could do data fixing here...
         self._log_data = np.log10(self._raw_data)
 
     @property
@@ -64,8 +66,14 @@ class HdfRateCoefficientInterpolator:
 
     @property
     def parameters(self):
-        return list(
-            zip(
+        return tuple(
+            Parameter(
+                name=name,
+                bounds=bounds,
+                extrapolable_bounds=bounds,
+                unit=unit,
+            )
+            for (name, bounds, unit) in zip(
                 self._parameter_desc,
                 self.parameter_limits,
                 self._parameter_units,
@@ -226,7 +234,12 @@ class RateCoefficientInterpolator:
 if __name__ == "__main__":
     from reactionnames import DT_NAME
 
-    ex = RateCoefficientInterpolator("T(d,n)a", "Maxwellian")
+    DDT_NAME = "D(d,p)T"
+    DDHE3_NAME = "D(d,n)³He"
+    #ex = RateCoefficientInterpolator("T(d,n)a", "Maxwellian")
+    ex = RateCoefficientInterpolator("3He(d,p)4He", "Maxwellian")
+    # ex = RateCoefficientInterpolator(DDT_NAME, "Maxwellian")
+    # ex = RateCoefficientInterpolator(DDHE3_NAME, "Maxwellian")
     print(ex.parameters)
     print(ex.output_units)
     print(ex.distribution)
