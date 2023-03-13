@@ -12,7 +12,11 @@ import pytest
 def has_shape(x, yshape):
     assert x.shape == yshape
 
+# all the functions herein take values in keV
 okay_values = [0, 1e-3, 1, 10, 1e3, 4e3]
+
+peta_eV = [1e12]
+googol_eV = [1e97]
 
 standard_cases = (
         ([np.nan],    has_nans),
@@ -36,6 +40,18 @@ cross_section_cases = (
 
 
 def generate_cross_section_test_cases(cases):
+    """Iterate over found reactions and schemes to expand test cases
+
+    Parameters
+    ----------
+    cases: iterable of 2-tuples
+
+    Returns
+    -------
+    list of 4-tuples, each of which is
+    (reaction name, cross section evaluation scheme,
+    test value, test that should pass)
+    """
     cross_sections_to_test = []
     for reaction in all_reactions:
         rx = Reaction(reaction)
@@ -83,239 +99,8 @@ class TestReaction(unittest.TestCase):
         self.verysmall = 1e-3
         self.rx = Reaction(DT_NAME)
 
-    def analytic(self, en, **kwargs):
-        return self.rx.cross_section(en, scheme="analytic", **kwargs)
-
-    def analytic_der(self, en, **kwargs):
-        return self.analytic(en, derivatives=True, **kwargs)
-
-    def endffunc(self, en, **kwargs):
-        return self.rx.cross_section(en, scheme="ENDF", **kwargs)
-
-    def endfder(self, en, **kwargs):
-        return self.endffunc(en, derivatives=True, **kwargs)
-
     def rc_analytic_func(self, t, **kwargs):
         return self.rx.rate_coefficient(t, scheme="analytic", **kwargs)
-
-    # tests of the regular analytic cross section function
-    def test_cs_analytic(self):
-        result = self.analytic(self.entemps)
-        all_nonneg(result)
-
-    def test_cs_analytic_twobythree(self):
-        result = self.analytic(self.twobythree)
-        all_nonneg(result)
-        self.assertEqual(result.shape, self.twobythree.shape)
-
-    def test_cs_analytic_single(self):
-        result = self.analytic(self.singlefloat)
-        self.assertEqual(len(result), 1)
-
-    def test_cs_analytic_singlenan(self):
-        result = self.analytic(np.nan)
-        self.assertEqual(len(result), 1)
-        has_nans(result)
-
-    def test_cs_analytic_zero(self):
-        result = self.analytic(self.array_with_zero)
-        has_zeros(result)
-        all_nonneg(result)
-
-    def test_cs_analytic_neg(self):
-        result = self.analytic(self.array_with_neg)
-        has_nans(result)
-
-    def test_cs_analytic_neginf(self):
-        result = self.analytic(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_analytic_neginf(self):
-        result = self.analytic(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_analytic_inf(self):
-        result = self.analytic(self.array_with_inf)
-        has_nans(result)
-
-    def test_cs_analytic_nan(self):
-        result = self.analytic(self.array_with_nan)
-        has_nans(result)
-
-    def test_cs_analytic_manybad(self):
-        result = self.analytic(self.array_manybad)
-        has_nans(result)
-
-    def test_cs_analytic_allnan(self):
-        result = self.analytic(self.array_allnan)
-        has_nans(result)
-
-    def test_cs_analytic_verysmall(self):
-        result = self.analytic(self.verysmall)
-        all_nonneg(result)
-
-    # tests of the analytic cross section's derivative
-    def test_cs_analytic_der(self):
-        result = self.analytic_der(self.entemps)
-        all_nonneg(result)
-
-    def test_cs_analytic_der_single(self):
-        result = self.analytic_der(self.singlefloat)
-        self.assertEqual(len(result), 1)
-
-    def test_cs_analytic_der_singlenan(self):
-        result = self.analytic_der(np.nan)
-        self.assertEqual(len(result), 1)
-        has_nans(result)
-
-    def test_cs_analytic_der_zero(self):
-        result = self.analytic_der(self.array_with_zero)
-        all_nonneg(result)
-        all_finite(result)
-
-    def test_cs_analytic_der_neg(self):
-        result = self.analytic_der(self.array_with_neg)
-        has_nans(result)
-
-    def test_cs_analytic_der_neginf(self):
-        result = self.analytic_der(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_analytic_der_neginf(self):
-        result = self.analytic_der(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_analytic_der_inf(self):
-        result = self.analytic_der(self.array_with_inf)
-        has_nans(result)
-
-    def test_cs_analytic_der_nan(self):
-        result = self.analytic_der(self.array_with_nan)
-        has_nans(result)
-
-    def test_cs_analytic_der_manybad(self):
-        result = self.analytic_der(self.array_manybad)
-        has_nans(result)
-
-    def test_cs_analytic_der_allnan(self):
-        result = self.analytic_der(self.array_allnan)
-        has_nans(result)
-
-    def test_cs_analytic_der_verysmall(self):
-        result = self.analytic_der(self.verysmall)
-        all_nonneg(result)
-
-    # tests of the ENDF cross section
-    def test_cs_endffunc(self):
-        result = self.endffunc(self.entemps)
-        all_nonneg(result)
-
-    def test_cs_endffunc_twobythree(self):
-        result = self.endffunc(self.twobythree)
-        all_nonneg(result)
-        self.assertEqual(result.shape, self.twobythree.shape)
-
-    def test_cs_endffunc_single(self):
-        result = self.endffunc(self.singlefloat)
-        self.assertEqual(len(result), 1)
-
-    def test_cs_endffunc_singlenan(self):
-        result = self.endffunc(np.nan)
-        self.assertEqual(len(result), 1)
-        has_nans(result)
-
-    def test_cs_endffunc_zero(self):
-        result = self.endffunc(self.array_with_zero)
-        has_zeros(result)
-        all_nonneg(result)
-
-    def test_cs_endffunc_neg(self):
-        result = self.endffunc(self.array_with_neg)
-        has_nans(result)
-
-    def test_cs_endffunc_neginf(self):
-        result = self.endffunc(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_endffunc_neginf(self):
-        result = self.endffunc(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_endffunc_inf(self):
-        result = self.endffunc(self.array_with_inf)
-        has_nans(result)
-
-    def test_cs_endffunc_nan(self):
-        result = self.endffunc(self.array_with_nan)
-        has_nans(result)
-
-    def test_cs_endffunc_manybad(self):
-        result = self.endffunc(self.array_manybad)
-        has_nans(result)
-
-    def test_cs_endffunc_allnan(self):
-        result = self.endffunc(self.array_allnan)
-        has_nans(result)
-
-    def test_cs_endffunc_verysmall(self):
-        result = self.endffunc(self.verysmall)
-        all_nonneg(result)
-
-    # tests of the ENDF derivative
-    def test_cs_endfder(self):
-        result = self.endfder(self.entemps)
-        all_nonneg(result)
-
-    def test_cs_endfder_twobythree(self):
-        result = self.endfder(self.twobythree)
-        all_nonneg(result)
-        self.assertEqual(result.shape, self.twobythree.shape)
-
-    def test_cs_endfder_single(self):
-        result = self.endfder(self.singlefloat)
-        self.assertEqual(len(result), 1)
-
-    def test_cs_endfder_singlenan(self):
-        result = self.endfder(np.nan)
-        self.assertEqual(len(result), 1)
-        has_nans(result)
-
-    def test_cs_endfder_zero(self):
-        result = self.endfder(self.array_with_zero)
-        no_nans(result)
-        all_nonneg(result)
-
-    def test_cs_endfder_neg(self):
-        result = self.endfder(self.array_with_neg)
-        has_nans(result)
-
-    def test_cs_endfder_neginf(self):
-        result = self.endfder(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_endfder_neginf(self):
-        result = self.endfder(self.array_with_neginf)
-        has_nans(result)
-
-    def test_cs_endfder_inf(self):
-        result = self.endfder(self.array_with_inf)
-        has_nans(result)
-
-    def test_cs_endfder_nan(self):
-        result = self.endfder(self.array_with_nan)
-        has_nans(result)
-
-    def test_cs_endfder_manybad(self):
-        result = self.endfder(self.array_manybad)
-        has_nans(result)
-
-    def test_cs_endfder_allnan(self):
-        result = self.endfder(self.array_allnan)
-        has_nans(result)
-
-    def test_cs_endfder_verysmall(self):
-        result = self.endfder(self.verysmall)
-        all_nonneg(result)
 
     # tests of the analytic rate coefficient
     def test_rc_analytic_func(self):
