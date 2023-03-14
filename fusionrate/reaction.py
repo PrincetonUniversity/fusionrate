@@ -409,6 +409,9 @@ class Reaction:
         """
         return self.loaded_distributions()
 
+    def available_rate_coefficient_schemes(self, distribution):
+        return list(self._ratecoeff[distribution].keys())
+
     def print_available_rate_coefficients(self):
         print(f"Available rate coefficient methods for {self._name}")
         for distribution, schemes in self._ratecoeff.items():

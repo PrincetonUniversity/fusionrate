@@ -27,3 +27,11 @@ def all_finite(val):
 
 def all_nonneg(val):
     assert np.all(val >= 0.0)
+
+
+def has_shape(x, yshape):
+    assert x.shape == yshape
+
+
+def is_empty(x):
+    assert len(x) == 0
