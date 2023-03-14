@@ -180,9 +180,12 @@ class TwoDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
         >>> rate_coefficient_grid([1,2,3], [2,3,4], grid=True)
         [[10, 20, 30],[11, 21, 31],[12, 22, 32]]
         """
+        log10_perp_temps = _safe_log10(perp_temperatures)
+        log10_parallel_temps = _safe_log10(parallel_temperatures)
+
         log_z = self._interp(
-            np.log10(perp_temperatures),
-            np.log10(parallel_temperatures),
+            log10_perp_temps,
+            log10_parallel_temps,
             grid=grid,
         )
         return np.power(10, log_z.T)
