@@ -97,7 +97,7 @@ class OneDHdfRateCoefficientInterpolator(HdfRateCoefficientInterpolator):
     def __init__(self, dataset):
         super().__init__(dataset)
         self._interp = scipy.interpolate.InterpolatedUnivariateSpline(
-            *self._log_parameter_spines, self._log_data, ext=0
+            *self._log_parameter_spines, self._log_data, k=3, ext=0
         )
         self._derivative_interp = None
 
