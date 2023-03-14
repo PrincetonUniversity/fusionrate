@@ -19,6 +19,7 @@ INTEGRATION = "integration"
 
 ENDF = "ENDF"
 
+RAW = "raw_"
 FUNC = "function"
 DERIV = "derivative"
 PARAMS = "parameters"
@@ -99,46 +100,24 @@ def _ratecoeff_node(obj):
 
 
 def _wrap_for_zero_when_out_of_bounds(func, bounds):
-    r"""Make a function return zero when its input is outside bounds
-
-    Parameters
-    ----------
-    func: callable
-        A function of one argument
-
-    bounds: list
-        A two-element list [low, high].
-
-    """
+    low, high = bounds
 
     @functools.wraps(func)
     def wrapper(x, **kwargs):
-        result = np.zeros_like(x)
-        low, high = bounds
-        inbounds = (x > low) & (x < high)
-        result[inbounds] = func(x[inbounds], **kwargs)
+        result = np.zeros(x.shape)
+        acceptable = (x > low) & (x < high)
+        result[acceptable] = func(x[acceptable], **kwargs)
         return result
 
     return wrapper
 
 
 def _wrap_for_zero_below_lower_bound(func, bounds):
-    r"""Make a function return zero when its input is below the lower bound
-
-    Parameters
-    ----------
-    func: callable
-        A function of one argument
-
-    bounds: list
-        A two-element list [low, high].
-
-    """
+    low, high = bounds
 
     @functools.wraps(func)
     def wrapper(x, **kwargs):
-        result = np.zeros_like(x)
-        low, high = bounds
+        result = np.zeros(x.shape)
         acceptable = x > low
         result[acceptable] = func(x[acceptable], **kwargs)
         return result
@@ -146,33 +125,16 @@ def _wrap_for_zero_below_lower_bound(func, bounds):
     return wrapper
 
 
-def _move_values_in_bounds(x, bounds):
-    result = x.copy()
-    low, high = bounds
-    result[x < low] = low
-    result[x > high] = high
-    return result
-
-
 def _wrap_to_move_values_in_bounds(func, bounds):
-    r"""
-
-    Parameters
-    ----------
-    func: callable
-        A function of one argument
-
-    bounds: list
-        A two-element list [low, high].
-
-    """
+    low, high = bounds
 
     @functools.wraps(func)
     def wrapper(x, **kwargs):
-        corrected_values = _move_values_in_bounds(x, bounds)
+        corrected_values = np.clip(x, low, high)
         return func(corrected_values, **kwargs)
 
     return wrapper
+
 
 def _normalize_energy(e):
     r"""Set negative, infinite, and nan values to nan
@@ -198,9 +160,27 @@ def _normalize_energy(e):
     logical_or and instead doing two set (=) operations.
     """
     e = np.atleast_1d(e).astype(float)
-    bad_ix = np.logical_or(e < 0.0, ~np.isfinite(e))
-    e[bad_ix] = np.nan
+    mask = np.logical_or(e < 0.0, ~np.isfinite(e))
+    np.putmask(e, mask, np.nan)
     return e
+
+
+def _operate_on_valid(func, e):
+    r"""Call func(e) only for non-negative numbers
+
+    Parameters
+    ----------
+    func: callable
+        A function which takes one argument
+    e: np.ndarray
+        A numpy array representing energies or temperatures.
+
+    """
+    result = np.full(e.shape, np.nan)
+    ix = e >= 0
+    result[ix] = func(e[ix])
+    return result
+
 
 def _operate_on_valid_entries_of_arrays(func, *args, **kwargs):
     """Apply a function to non-NaN array entries
@@ -218,29 +198,13 @@ def _operate_on_valid_entries_of_arrays(func, *args, **kwargs):
     """
     results = np.full(np.broadcast(*args).shape, np.nan)
 
-    status = [~np.isnan(arg) for arg in args]
+    status = [np.isfinite(arg) for arg in args]
     broadcasted_arrays = np.broadcast_arrays(*args)
     all_ok = np.all(np.broadcast_arrays(*status), axis=0)
     valid_inputs = [bca[all_ok] for bca in broadcasted_arrays]
 
     results[all_ok] = func(*valid_inputs, **kwargs)
     return results
-
-def _operate_on_valid(func, e):
-    r"""Call func(e) only for non-negative numbers
-
-    Parameters
-    ----------
-    func: callable
-        A function which takes one argument
-    e: np.ndarray
-        A numpy array representing energies or temperatures.
-
-    """
-    result = np.full(e.shape, np.nan)
-    ix = e >= 0
-    result[ix] = func(e[ix])
-    return result
 
 
 class Reaction:
@@ -278,6 +242,75 @@ class Reaction:
     def name(self):
         return self._name
 
+    def _get_function_node(self, which: str, scheme: str, distribution: str):
+        if which == "cross section":
+            tree = self._cross_section
+        elif which == "rate coefficient":
+            tree = self._ratecoeff[distribution]
+        else:
+            raise ValueError(
+                f"""Argument "which", currently "{which}", must be either either
+            "cross section" or "rate coefficient"."""
+            )
+        return tree[scheme]
+
+    def _set_bounds_behavior(self, node, subfunction, bounds, behavior):
+        """
+        Parameters
+        ----------
+        bounds: list [low, high]
+        behavior: string
+
+        """
+        raw_subfunction = RAW + subfunction
+        # this should only ever happen once
+        if not raw_subfunction in node:
+            node[raw_subfunction] = node[subfunction]
+
+        behaviors = {
+            "zeros": _wrap_for_zero_when_out_of_bounds,
+            "zero_below": _wrap_for_zero_below_lower_bound,
+            "const": _wrap_to_move_values_in_bounds,
+            "raw": lambda x, y: x,
+        }
+
+        node[subfunction] = behaviors[behavior](node[raw_subfunction], bounds)
+
+    def set_extrapolation_behavior(
+        self,
+        which="cross_section",
+        scheme="analytic",
+        distribution=Distributions.MAXW,
+        derivatives=False,
+        behavior="zeros",
+        extrapolable=False,
+    ):
+        """Set the outside-bounds behavior of a function
+
+        Parameters
+        ----------
+        which: str
+            "cross section" or "rate coefficient"
+        scheme: str
+            Any of the loaded evaluation schemes
+        distribution: str
+            For rate coefficients, the distribution function
+        derivatives: bool
+            Whether to affect the main function or its derivative
+        behavior: str
+            * "zeros": return 0 outside the bounds
+            * "zero_below": return 0 beneath the lower bound, extrapolate above
+            * "const": return the boundary value
+        extrapolable: bool
+            If the function specifies reasonably extrapolable bounds, use those
+            instead of the "safe" bounds.
+        """
+        node = self._get_function_node(which, scheme, distribution)
+        params = node[PARAMS]
+        bounds = params.extrapolable_bounds if extrapolable else params.bounds
+        subfunction = DERIV if derivatives else FUNC
+        self._set_bounds_behavior(node, subfunction, bounds, behavior)
+
     def _ensure_distribution(self, dist):
         if not self._ratecoeff.get(dist):
             self._ratecoeff[dist] = dict()
@@ -285,45 +318,54 @@ class Reaction:
     def _load_cross_section_analytic(self):
         if self.has_analytic_fit:
             obj = BoschCrossSection(self._name)
-            d = _cross_section_node(obj)
-            bounds = d[PARAMS].bounds
-            d[FUNC] = _wrap_for_zero_when_out_of_bounds(d[FUNC], bounds)
-            d[DERIV] = _wrap_to_move_values_in_bounds(d[DERIV], bounds)
-            self._cross_section[ANALYTIC] = d
+            node = _cross_section_node(obj)
+            self._cross_section[ANALYTIC] = node
+
+            bounds = node[PARAMS].bounds
+
+            self._set_bounds_behavior(node, FUNC, bounds, behavior="zeros")
+            self._set_bounds_behavior(node, DERIV, bounds, behavior="const")
 
     def _load_cross_section_ENDF(self):
         obj = ENDFCrossSection(self._name)
-        d = _cross_section_node(obj)
-        bounds = d[PARAMS].extrapolable_bounds
-        d[FUNC] = _wrap_for_zero_below_lower_bound(d[FUNC], bounds)
-        d[DERIV] = _wrap_to_move_values_in_bounds(d[DERIV], bounds)
-        self._cross_section[ENDF] = d
+        node = _cross_section_node(obj)
+        self._cross_section[ENDF] = node
+
+        bounds = node[PARAMS].extrapolable_bounds
+
+        self._set_bounds_behavior(node, FUNC, bounds, behavior="zero_below")
+        self._set_bounds_behavior(node, DERIV, bounds, behavior="const")
 
     def _load_ratecoeff_analytic(self, dist, **kwargs):
         if self.has_analytic_fit and dist == Distributions.MAXW:
             self._ensure_distribution(dist)
             obj = BoschRateCoeff(self._name, **kwargs)
-            d = _ratecoeff_node(obj)
-            self._ratecoeff[dist][ANALYTIC] = d
+            node = _ratecoeff_node(obj)
+            self._ratecoeff[dist][ANALYTIC] = node
+
+            bounds = node[PARAMS][0].bounds
+
+            self._set_bounds_behavior(node, FUNC, bounds, behavior="zeros")
+            self._set_bounds_behavior(node, DERIV, bounds, behavior="const")
 
     def _load_integrator(self, dist, **kwargs):
         integrator = rate_coefficient_integrator_factory.create(
             self.rcore, self._cross_section[ENDF][FUNC], dist, **kwargs
         )
 
-        d = {OBJ: integrator, FUNC: integrator.ratecoeff}
+        node = {OBJ: integrator, FUNC: integrator.ratecoeff}
 
         self._ensure_distribution(dist)
 
-        self._ratecoeff[dist][INTEGRATION] = d
+        self._ratecoeff[dist][INTEGRATION] = node
 
     def _load_ratecoeff_interpolator(self, dist, **kwargs):
         if ratecoeff_data_exists(self._name, dist):
             interp = RateCoefficientInterpolator(self._name, dist, **kwargs)
-            d = _ratecoeff_node(interp)
+            node = _ratecoeff_node(interp)
             self._ensure_distribution(dist)
 
-            self._ratecoeff[dist][INTERPOLATION] = d
+            self._ratecoeff[dist][INTERPOLATION] = node
 
     def print_available_functions(self):
         self.print_available_cross_sections()
@@ -343,7 +385,9 @@ class Reaction:
             eb = params.extrapolable_bounds
             extra_bounds_message = ""
             if eb[0] < bounds[0] or eb[1] > bounds[1]:
-                extra_bounds_message = f", extrapolable to [{eb[0]:.3f} to {eb[1]:.3g} {unit}]"
+                extra_bounds_message = (
+                    f", extrapolable to [{eb[0]:.3f} to {eb[1]:.3g} {unit}]"
+                )
 
             print(f"    {source}, {bounds_message}{extra_bounds_message}")
 
@@ -481,7 +525,9 @@ rate_coefficient_x:\n"
         key = DERIV if derivatives else FUNC
         func = node[key]
 
-        return _operate_on_valid_entries_of_arrays(func, *normalized_args, **kwargs)
+        return _operate_on_valid_entries_of_arrays(
+            func, *normalized_args, **kwargs
+        )
 
 
 if __name__ == "__main__":
