@@ -395,7 +395,7 @@ class BoschCrossSectionCalc:
             * numer
             / denom**2
         )
-        term2 = a2 + e * ns1 + e * (ns1 + e * (a4 + 2 * a5 * e)) / denom
+        term2 = (a2 + e * ns1 + e * (ns1 + e * (a4 + 2 * a5 * e))) / denom
         return term1 + term2
 
     def cross_section(self, e):
