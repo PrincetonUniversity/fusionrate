@@ -444,11 +444,11 @@ class Reaction:
 
         The derivative w.r.t. energy, in mb/keV
         """
-        e = _normalize_energy(e)
         node = self._cross_section[scheme]
         key = DERIV if derivatives else FUNC
         func = node[key]
 
+        e = _normalize_energy(e)
         return _operate_on_valid(func, e)
 
     def _no_cross_analytic(self, *T, **kwargs):
@@ -520,11 +520,11 @@ rate_coefficient_x:\n"
         """
         self._validate_ratecoeff_opts(distribution, scheme, derivatives)
 
-        normalized_args = [_normalize_energy(arg) for arg in args]
         node = self._ratecoeff[distribution][scheme]
         key = DERIV if derivatives else FUNC
         func = node[key]
 
+        normalized_args = [_normalize_energy(arg) for arg in args]
         return _operate_on_valid_entries_of_arrays(
             func, *normalized_args, **kwargs
         )
