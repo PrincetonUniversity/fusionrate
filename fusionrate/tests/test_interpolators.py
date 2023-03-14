@@ -9,11 +9,11 @@ from fusionrate.reactionnames import DT_NAME
 class TestRateCoefficientInterpolator1D(unittest.TestCase):
     def setUp(self):
         self.temperatures = np.array([3, 5, 10, 20], dtype=float)  # in keV
-        self.array_with_zero = np.array([0, 1], dtype=float)  # in keV
-        self.array_with_neg = np.array([-1, 1], dtype=float)  # in keV
-        self.array_with_neginf = np.array([-np.inf, 1])  # in keV
-        self.array_with_inf = np.array([1, np.inf])  # in keV
-        self.array_with_nan = np.array([np.nan, 1])  # in keV
+        self.array_with_zero = np.array([0, 1], dtype=float)
+        self.array_with_neg = np.array([-1, 1], dtype=float)
+        self.array_with_neginf = np.array([-np.inf, 1])
+        self.array_with_inf = np.array([1, np.inf])
+        self.array_with_nan = np.array([np.nan, 1])
         self.dt_max = RateCoefficientInterpolator("T(d,n)a", "Maxwellian")
 
     def test_ratecoeff(self):
