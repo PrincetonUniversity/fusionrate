@@ -11,7 +11,6 @@ from fusionrate.constants import Distributions
 from fusionrate.load_data import ratecoeff_data_exists
 
 import functools
-from icecream import ic
 
 INTERPOLATION = "interpolation"
 ANALYTIC = "analytic"
