@@ -111,65 +111,53 @@ class TestReaction(unittest.TestCase):
         result = self.rc_analytic_func(self.entemps)
         all_nonneg(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_twobythree(self):
         result = self.rc_analytic_func(self.twobythree)
         all_nonneg(result)
         self.assertEqual(result.shape, self.twobythree.shape)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_single(self):
         result = self.rc_analytic_func(self.singlefloat)
         self.assertEqual(len(result), 1)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_singlenan(self):
         result = self.rc_analytic_func(np.nan)
         self.assertEqual(len(result), 1)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_zero(self):
         result = self.rc_analytic_func(self.array_with_zero)
         has_zeros(result)
         all_nonneg(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neg(self):
         result = self.rc_analytic_func(self.array_with_neg)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neginf(self):
         result = self.rc_analytic_func(self.array_with_neginf)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_neginf(self):
         result = self.rc_analytic_func(self.array_with_neginf)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_inf(self):
         result = self.rc_analytic_func(self.array_with_inf)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_nan(self):
         result = self.rc_analytic_func(self.array_with_nan)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_manybad(self):
         result = self.rc_analytic_func(self.array_manybad)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_allnan(self):
         result = self.rc_analytic_func(self.array_allnan)
         has_nans(result)
 
-    @pytest.mark.skip(reason="Not ready to test rate coefficients")
     def test_rc_analytic_func_verysmall(self):
         result = self.rc_analytic_func(self.verysmall)
         all_nonneg(result)
