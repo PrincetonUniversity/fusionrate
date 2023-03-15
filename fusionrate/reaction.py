@@ -143,6 +143,10 @@ BEHAVIORS = {
 }
 
 
+def _normalize_dimensions_and_copy(x):
+    return np.atleast_1d(x).astype(float)
+
+
 def _normalize_energy(e):
     r"""Set negative, infinite, and nan values to nan
 
@@ -166,7 +170,7 @@ def _normalize_energy(e):
     .astype(float) if the type is not float), or by avoiding the
     logical_or and instead doing two set (=) operations.
     """
-    e = np.atleast_1d(e).astype(float)
+    e = _normalize_dimensions_and_copy(e)
     mask = np.logical_or(e < 0.0, ~np.isfinite(e))
     np.putmask(e, mask, np.nan)
     return e
@@ -186,6 +190,52 @@ def _operate_on_valid(func, e):
     result = np.full(e.shape, np.nan)
     ix = e >= 0
     result[ix] = func(e[ix])
+    return result
+
+
+def _insert_nans(x, indices, axis=0):
+    for i in indices:
+        x = np.insert(x, i, np.nan, axis=axis)
+    return x
+
+
+def _operate_on_valid_entries_grid_mode(func, *args, **kwargs):
+    """Apply a function to combinations of entries without NaN
+
+    Parameters
+    ----------
+    func: callable
+        A function which takes one or more arguments and returns a numpy array
+        with shape equal to those of the list of its arguments in reversed
+        order
+    *args: one or more np.ndarrays
+        These do not need to be the same length, but they all must be 1D
+
+    Returns
+    -------
+    A numpy array with shape equal to the lengths of each of the input arrays,
+    but in reversed order.
+
+    """
+    bad_indices = [np.where(~np.isfinite(arg))[0] for arg in args]
+
+    some_bad_entries = any(np.array([len(a) for a in bad_indices]) > 0)
+
+    if some_bad_entries:
+        args = [
+            np.delete(arg, bads, axis=0) for arg, bads in zip(args, bad_indices)
+        ]
+
+    result = func(*args, **kwargs)
+
+    # Replace with hyperplanes of nans
+    # This might end up being an n^3 process for large arrays.
+    # May want to seek a better algorithm (or data structure) for masking / ignoring 'bads'.
+    if some_bad_entries:
+        for axis, bads in enumerate(bad_indices):
+            if len(bads) > 0:
+                result = _insert_nans(result, bads, axis=(len(args)-axis-1))
+
     return result
 
 
@@ -209,7 +259,6 @@ def _operate_on_valid_entries_of_arrays(func, *args, **kwargs):
     broadcasted_arrays = np.broadcast_arrays(*args)
     all_ok = np.all(np.broadcast_arrays(*status), axis=0)
     valid_inputs = [bca[all_ok] for bca in broadcasted_arrays]
-
     results[all_ok] = func(*valid_inputs, **kwargs)
     return results
 
@@ -487,6 +536,17 @@ rate_coefficient_x:\n"
                 + "\n".join(issues)
             )
 
+    def _validate_ratecoeff_args(self, *normalized_args, **kwargs):
+        if "grid" in kwargs and kwargs["grid"]:
+            dimensions = np.array([arg.ndim for arg in normalized_args])
+            if not all(dimensions == 1):
+                raise ValueError(
+                    f"""
+                    grid=True can be used only for 0D or 1D arguments.
+                    Arguments' dimensions were {dimensions}.
+                    """
+                )
+
     def rate_coefficient(
         self,
         *args,
@@ -528,7 +588,13 @@ rate_coefficient_x:\n"
         func = node[key]
 
         normalized_args = [_normalize_energy(arg) for arg in args]
-        return _operate_on_valid_entries_of_arrays(
+        self._validate_ratecoeff_args(*normalized_args, **kwargs)
+
+        safe_operator = _operate_on_valid_entries_of_arrays
+        if "grid" in kwargs and kwargs["grid"]:
+            safe_operator = _operate_on_valid_entries_grid_mode
+
+        return safe_operator(
             func, *normalized_args, **kwargs
         )
 
