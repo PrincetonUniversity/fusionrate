@@ -135,6 +135,14 @@ def _wrap_to_move_values_in_bounds(func, bounds):
     return wrapper
 
 
+BEHAVIORS = {
+    "zeros": _wrap_for_zero_when_out_of_bounds,
+    "zero_below": _wrap_for_zero_below_lower_bound,
+    "const": _wrap_to_move_values_in_bounds,
+    "raw": lambda x, y: x,
+}
+
+
 def _normalize_energy(e):
     r"""Set negative, infinite, and nan values to nan
 
@@ -266,14 +274,7 @@ class Reaction:
         if not raw_subfunction in node:
             node[raw_subfunction] = node[subfunction]
 
-        behaviors = {
-            "zeros": _wrap_for_zero_when_out_of_bounds,
-            "zero_below": _wrap_for_zero_below_lower_bound,
-            "const": _wrap_to_move_values_in_bounds,
-            "raw": lambda x, y: x,
-        }
-
-        node[subfunction] = behaviors[behavior](node[raw_subfunction], bounds)
+        node[subfunction] = BEHAVIORS[behavior](node[raw_subfunction], bounds)
 
     def set_extrapolation_behavior(
         self,
@@ -554,3 +555,4 @@ if __name__ == "__main__":
         derivatives=False,
     )
     r.print_available_functions()
+    r.set_extrapolation_behavior("cross section")
