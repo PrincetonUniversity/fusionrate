@@ -1,1 +1,1 @@
-from fusionrate.reaction import Reaction
+from .reaction import Reaction
