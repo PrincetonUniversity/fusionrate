@@ -1,5 +1,5 @@
 import fusionrate.bosch as bosch
-from fusionrate.tests.utility import has_nans
+from .utility import has_nans
 
 import unittest
 import numpy as np

@@ -2,7 +2,7 @@ from fusionrate import Reaction
 
 import unittest
 import numpy as np
-from fusionrate.tests.utility import *
+from .utility import *
 from fusionrate.reactionnames import ALL_REACTIONS as all_reactions
 from fusionrate.reactionnames import DT_NAME
 

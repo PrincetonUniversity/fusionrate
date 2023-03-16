@@ -2,7 +2,7 @@ from fusionrate.interpolators import RateCoefficientInterpolator
 
 import unittest
 import numpy as np
-from fusionrate.tests.utility import has_nans, no_nans
+from .utility import has_nans, no_nans
 from fusionrate.reactionnames import DT_NAME
 
 
