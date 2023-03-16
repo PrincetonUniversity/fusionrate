@@ -5,7 +5,14 @@ import numpy as np
 from .utility import has_nans, no_nans
 from fusionrate.reactionnames import DT_NAME
 
+from fusionrate.load_data import ratecoeff_data_exists
 
+import pytest
+
+# see if file exists
+maxwell_exists = ratecoeff_data_exists("T(d,n)a", "Maxwellian")
+
+@pytest.mark.skipif(not maxwell_exists, reason="RC data not found")
 class TestRateCoefficientInterpolator1D(unittest.TestCase):
     def setUp(self):
         self.temperatures = np.array([3, 5, 10, 20], dtype=float)  # in keV
