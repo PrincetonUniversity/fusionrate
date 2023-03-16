@@ -1,4 +1,5 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+![Testing](https://github.com/PrincetonUniversity/fusionrate/actions/workflows/main.yml/badge.svg?event=push)
 
 fusionrate
 ==========
