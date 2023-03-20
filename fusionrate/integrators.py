@@ -1,6 +1,5 @@
 from cubature import cubature
 import numpy as np
-import scipy.interpolate
 
 from fusionrate.constants import Distributions
 from fusionrate.constants import atomic_mass_unit as amu
