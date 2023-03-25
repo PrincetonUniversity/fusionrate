@@ -1,7 +1,7 @@
 from importlib import resources
 from pathlib import Path
 
-import appdirs
+import platformdirs
 import h5py
 import numpy as np
 
@@ -19,7 +19,7 @@ RATE_COEFFICIENT_DSET = "rate_coefficients"
 
 
 def user_data_dir():
-    return appdirs.user_data_dir(appname=PROJECT)
+    return platformdirs.user_data_dir(appname=PROJECT)
 
 
 def file_in_user_dir(dname):
