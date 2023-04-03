@@ -9,6 +9,7 @@ from fusionrate.physics import reduced_mass
 from fusionrate.physics import v_th
 
 
+
 # This is my velocity-based implementation
 def makef_simplemaxwellian(σ, m1, m2, extramult=1):
     r"""Integrand-making function
@@ -158,6 +159,30 @@ def makef_simplermaxwellian(σ, m1, m2, extramult=1):
         xmin = np.array([0], np.float64)
         xmax = np.array([h], np.float64)
         return xmin, xmax
+
+    return f, x_limits
+
+def makef_beamontarget(σ, m1, m2, extramult=1):
+    r"""Integrand-making function for a beam on Maxwellian target
+
+    Parameters
+    ----------
+    σ : function
+        Cross section function, which takes as a single argument energy in keV
+        and returns the cross section in millibarns
+    m1, m2 : float
+        reactant masses in amu
+
+    Returns
+    -------
+    functions f, x_limits
+    """
+    μ = reduced_mass(m1, m2) * amu
+    leading_factor = 2 / np.sqrt(2 * keV / (np.pi * μ))
+    leading_factor *= extramult
+
+    f = None
+    x_limits = None
 
     return f, x_limits
 
@@ -414,7 +439,7 @@ if __name__ == "__main__":
 
     rc = ReactionCore("D+T")
     cs = ENDFCrossSection(rc)
-    my_t = np.logspace(0, 3, 100)
+    my_t = np.logspace(0, 3, 5)
 
     t1, t2 = np.meshgrid(my_t, my_t)
 
@@ -424,7 +449,8 @@ if __name__ == "__main__":
         rc, cs, "Maxwellian", **kwargs
     )
 
-    σv = mwrc.ratecoeff(my_t)
+    #σv = mwrc.ratecoeff(my_t)
+    σv = mwrc.ratecoeff(np.array([1,10,50]))
 
-    plt.loglog(my_t, σv)
-    plt.show()
+    #plt.loglog(my_t, σv)
+    #plt.show()
