@@ -189,7 +189,7 @@ def _operate_on_valid(func, e):
     """
     result = np.full(e.shape, np.nan)
     ix = e >= 0
-    result[ix] = func(e[ix])
+    np.putmask(result, ix, func(e[ix]))
     return result
 
 
