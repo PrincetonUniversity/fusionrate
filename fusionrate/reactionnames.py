@@ -29,6 +29,7 @@ PB11_NAME = "¹¹B(p,α)2⁴He"
 
 TT_NAME = "T(t,2n)⁴He"
 HT_NAME = "³He(t,pn)⁴He"
+HTD_NAME = "³He(t,d)⁴He"
 HH_NAME = "³He(h,2p)⁴He"
 DLI6A_NAME = "⁶Li(d,α)⁴He"
 DLI6N_NAME = "⁶Li(d,n)⁷Be"
@@ -40,13 +41,14 @@ ALL_REACTIONS = [
     DDT_NAME,
     DDHE3_NAME,
     PLI6_NAME,
-    PB11_NAME,
-    #   TT_NAME,
-    #   HT_NAME,
-    #   HH_NAME,
-    #   DLI6A_NAME,
-    #   DLI6N_NAME,
-    #   DLI6P_NAME,
+#    PB11_NAME,
+    TT_NAME,
+    HT_NAME,
+    HTD_NAME,
+    HH_NAME,
+    DLI6A_NAME,
+    DLI6N_NAME,
+    DLI6P_NAME,
 ]
 # missing:
 # 'D + Li-6 --> He-3 + He-4 + n'
@@ -117,6 +119,7 @@ _REACTIONS = {
     (DD_REACTANTS, _bag(Particles.H3, Particles.H1)): DDT_NAME,
     (DD_REACTANTS, _bag(Particles.He3, Particles.n)): DDHE3_NAME,
     (HT_REACTANTS, _bag(Particles.He4, Particles.n, Particles.H1)): HT_NAME,
+    (HT_REACTANTS, _bag(Particles.He4, Particles.H2)): HTD_NAME,
     (DLI6_REACTANTS, _bag(Particles.He4, Particles.He4)): DLI6A_NAME,
     (DLI6_REACTANTS, _bag(Particles.n, Particles.Be7)): DLI6N_NAME,
     (DLI6_REACTANTS, _bag(Particles.H1, Particles.Li7)): DLI6P_NAME,
@@ -152,6 +155,7 @@ def _to_particle(s: str):
 
 def _normalize_reaction_separators(s: str):
     s = re.sub(r"-+>", "→", s)
+    s = re.sub(r",", "→", s)
     return s
 
 
@@ -166,7 +170,7 @@ def _joinparticles(particles: list):
 
 
 def _splitparticles(s: str):
-    return s.split("+")
+    return re.split(r'\(|\)|\+', s)
 
 
 def _validate_reaction_string(s: str):
@@ -184,6 +188,7 @@ def _multiply_particles(reaction_string):
     # This pattern is a bit of a hack.
     # It purposefully places 'H' at the end since it's a prefix of many of the
     # other strings. Other than that, only 'n' is a prefix of 'n-1'.
+    s = reaction_string.strip()
     searchable_particles = [
         "n-1",
         "n",
@@ -206,7 +211,7 @@ def _multiply_particles(reaction_string):
         + "|".join(searchable_particles)
         + ")"
     )
-    matches = re.match(pattern, reaction_string)
+    matches = re.match(pattern, s)
     if matches:
         coeff = int(matches.group("coeff"))
         particle = matches.group("particle")
@@ -214,13 +219,15 @@ def _multiply_particles(reaction_string):
         return _joinparticles(output_components)
     else:
         # If the input string doesn't match the pattern, return original string
-        return reaction_string
+        return s
 
 
 def _expand_particle_description(s: str):
     s1 = _splitparticles(s)
     s2 = [_multiply_particles(s) for s in s1]
-    return _joinparticles(s2)
+    s3 = _joinparticles(s2)
+    s4 = re.sub(r"pn|np", "p+n", s3)
+    return s4
 
 
 def _parse_reactants(s: str):
@@ -351,7 +358,7 @@ def _name_parser(s: str):
         raise ValueError(
             f"""Reaction string '{s}'
            has more than one reactant -> product separator.
-           Only one instance of → or -> is allowed."""
+           Only one instance of → or -> or , is allowed."""
         )
 
     if count == 0:
@@ -563,6 +570,4 @@ def bosch_name_resolver(reaction_raw_name: str):
 
 
 if __name__ == "__main__":
-    from icecream import ic
-
-    ic(name_resolver("DT"))
+    print(name_resolver("DT"))

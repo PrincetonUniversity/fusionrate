@@ -1,11 +1,23 @@
 import numpy as np
 
-from fusionrate.reactionnames import bosch_name_resolver
+
+from fusionrate.reactionnames import name_resolver
 from fusionrate.reactionnames import DDHE3_NAME
 from fusionrate.reactionnames import DDT_NAME
 from fusionrate.reactionnames import DHE3_NAME
 from fusionrate.reactionnames import DT_NAME
 from fusionrate.parameter import Parameter
+
+
+def _bosch_name_resolver(raw_reaction_name):
+    reaction_name = name_resolver(raw_reaction_name)
+    bosch_reaction_set = [DT_NAME, DDT_NAME, DHE3_NAME, DDHE3_NAME]
+
+    if reaction_name not in bosch_reaction_set:
+        raise ValueError(f"""Reaction name {raw_reaction_name}
+            is not in the Bosch-Hale reaction set.""")
+
+    return reaction_name
 
 
 class BoschCrossSection:
@@ -59,7 +71,7 @@ class BoschCrossSection:
     }
 
     def __init__(self, raw_reaction_name, energy_domain="full"):
-        self.reaction_name = bosch_name_resolver(raw_reaction_name)
+        self.reaction_name = _bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         a = coeffs["a"]
@@ -87,6 +99,7 @@ class BoschCrossSection:
                     raise ValueError(
                         f"Unknown energy domain '{energy_domain}'; choices are 'full', 'upper', and 'lower'."
                     )
+
 
     @classmethod
     def provides_reactions(cls):
@@ -205,7 +218,7 @@ class BoschRateCoeff:
     }
 
     def __init__(self, raw_reaction_name):
-        self.reaction_name = bosch_name_resolver(raw_reaction_name)
+        self.reaction_name = _bosch_name_resolver(raw_reaction_name)
         coeffs = self.COEFFICIENTS[self.reaction_name]
         Bg = coeffs["Bg"]
         mrc2 = coeffs["mrc²"]
