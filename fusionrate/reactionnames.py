@@ -1,8 +1,7 @@
-from enum import Enum
 from collections import Counter
+from enum import Enum
 import re
 
-# names must be python identifiers
 Particles = Enum(
     "Particles",
     [
@@ -18,6 +17,8 @@ Particles = Enum(
         "B11",
     ],
 )
+
+RX_SEPARATOR = '→'
 
 DT_NAME = "T(d,n)⁴He"
 DHE3_NAME = "³He(d,p)⁴He"
@@ -54,7 +55,6 @@ ALL_REACTIONS = [
 # 'D + Li-6 --> He-3 + He-4 + n'
 # 'He-3 + T --> He-4 + p + n'
 
-# could make this nicer
 # no 3He because that would be ambiguous with 3 He-4
 ION_SYNONYMS = {
     Particles.n: ("n-1", "n"),
@@ -70,7 +70,6 @@ ION_SYNONYMS = {
 }
 
 PARTICLE_LOOKUP = dict()
-
 for k, v in ION_SYNONYMS.items():
     for result in v:
         PARTICLE_LOOKUP[result] = k
@@ -87,8 +86,15 @@ def _determine_particle(s: str):
     return p
 
 
-def _bag(*particles):
-    counter = Counter(particles)
+def _bag(*args):
+    """Immutable count of the objects used as the arguments.
+
+    Examples
+    --------
+    >>> _bag('a', 'a', 'b')
+    frozenset({('a', 2), ('b', 1)})
+    """
+    counter = Counter(args)
     return frozenset(counter.items())
 
 
@@ -154,15 +160,14 @@ def _to_particle(s: str):
 
 
 def _normalize_reaction_separators(s: str):
-    s = re.sub(r"-+>", "→", s)
-    s = re.sub(r",", "→", s)
+    s = re.sub(r"-+>", RX_SEPARATOR, s)
+    s = re.sub(r",", RX_SEPARATOR, s)
     return s
 
 
 def _count_reaction_separators(s: str):
     s = _normalize_reaction_separators(s)
-    separator = "→"
-    return s.count(separator)
+    return s.count(RX_SEPARATOR)
 
 
 def _joinparticles(particles: list):
@@ -179,7 +184,7 @@ def _validate_reaction_string(s: str):
         raise ValueError(
             f"""Reaction string '{s}'
            has more than one reactant -> product separator.
-           Only one instance of → or -> is allowed."""
+           Only one instance of {RX_SEPARATOR} or -> is allowed."""
         )
 
 
@@ -358,7 +363,7 @@ def _name_parser(s: str):
         raise ValueError(
             f"""Reaction string '{s}'
            has more than one reactant -> product separator.
-           Only one instance of → or -> or , is allowed."""
+           Only one instance of {RX_SEPARATOR} or -> or , is allowed."""
         )
 
     if count == 0:
@@ -367,7 +372,7 @@ def _name_parser(s: str):
 
     else:
         s = _normalize_reaction_separators(s)
-        reactants, products = s.split("→")
+        reactants, products = s.split(RX_SEPARATOR)
 
         reactants_description = _parse_reactants(reactants)
         products_description = _parse_products(products)
