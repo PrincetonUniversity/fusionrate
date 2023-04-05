@@ -34,6 +34,7 @@ repository = "https://github.com/PlasmaControl/fusionrate"
 [project.optional-dependencies]
 tests = [
   "pytest",
+  "jax[cpu]",
 ]
 dev = [
   "flake8",
