@@ -12,6 +12,9 @@ from fusionrate.parameter import Parameter
 
 from functools import partial
 
+# this doesn't work as
+# @_wrap_for_screen(self.prescribed_bounds)
+# because self does not yet exist.
 def _wrap_for_screen(func, bounds):
     r"""Return func only for valid values, and 0 or nan otherwise.
 
