@@ -1,4 +1,5 @@
 import fusionrate.bosch as bosch
+from fusionrate.backend import jnp
 from .utility import has_nans
 
 import unittest
@@ -7,6 +8,17 @@ import numpy as np
 # These tests focus on ensuring the correctness of the functions, given
 # reasonable values, by comparing to results in the Bosch Hale paper.
 # They don't test the behavior under bad or unreasonable inputs.
+
+class TestBoschOffNormals(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_zero(self):
+        cs = bosch.BoschCrossSection("DT")
+        z = jnp.array([0.0])
+        result = cs.cross_section(z)
+        assert np.allclose(result, z)
 
 class TestBoschCrossSection(unittest.TestCase):
     r"""
