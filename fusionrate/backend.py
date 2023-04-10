@@ -1,4 +1,10 @@
 # This 'backend' functionality was copied from DESC (and then pared down)
+# From other files, we can import jnp from this file.
+# i.e. from backend import jnp.
+# It'll automatically be either regular numpy (if set that way via environment
+# variable, or if jax is not found) or jax (if it's found and permitted).
+# np is always regular numpy.
+#
 
 # MIT License
 #
@@ -76,10 +82,12 @@ if use_jax:  # noqa: C901 - FIXME: simplify this, define globally and then assig
     switch = jax.lax.switch
     while_loop = jax.lax.while_loop
 
+    # see docstring below
     def put(arr, inds, vals):
         return jnp.asarray(arr).at[inds].set(vals)
 
 
+    # see docstring below
     def sign(x):
         x = jnp.atleast_1d(x)
         y = jnp.where(x == 0, 1, jnp.sign(x))
@@ -88,11 +96,13 @@ if use_jax:  # noqa: C901 - FIXME: simplify this, define globally and then assig
 else:
     jit = lambda func, *args, **kwargs: func
 
+    # see docstring below
     def put(arr, inds, vals):
         arr[inds] = vals
         return arr
 
 
+    # see docstring below
     def sign(x):
         x = np.atleast_1d(x)
         y = np.where(x == 0, 1, np.sign(x))
@@ -203,6 +213,7 @@ else:
             val = body_fun(val)
         return val
 
+# add common docstrings to two of these functions
 _put_doc = """Functional interface for array "fancy indexing".
 
 Provides a way to do arr[inds] = vals in a way that works with JAX.
