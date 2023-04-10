@@ -1,5 +1,7 @@
 import numpy as np
 
+from fusionrate.backend import jnp
+from fusionrate.backend import jit
 
 from fusionrate.reactionnames import name_resolver
 from fusionrate.reactionnames import DDHE3_NAME
@@ -8,6 +10,84 @@ from fusionrate.reactionnames import DHE3_NAME
 from fusionrate.reactionnames import DT_NAME
 from fusionrate.parameter import Parameter
 
+from functools import partial
+
+def _wrap_for_screen(func, bounds):
+    r"""Return func only for valid values, and 0 or nan otherwise.
+
+    value: float or array_like
+    f: function
+        Takes one array-like argument and returns it in the same shape
+    lower: float
+        If a value is below this limit, return 0.0.
+        Must be non-negative.
+    upper: float
+        If a value is above this limit, return 0.0.
+        Must be larger than `lower`.
+
+    Returns
+    -------
+    jnp.array with shape of `value`.
+    """
+    low, high = bounds
+
+    @functools.wraps(func)
+    @partial(jit, static_argnums=1)
+    def wrapper(x, **kwargs):
+        x = jnp.atleast_1d(x)
+        test_abovelowerlimit = value > low
+        test_belowupperlimit = value < high
+        within_limits = test_abovelowerlimit & test_belowupperlimit
+
+        test_isfinite= jnp.isfinite(value)
+        test_nonneg = value >= 0.0
+        otherwise_valid = test_isfinite & test_nonneg
+
+        zeros_array = jnp.zeros_like(value)
+        results = f(value, **kwargs)
+
+        return jnp.select(
+            (within_limits, otherwise_valid),
+            (results, zeros_array), default=jnp.nan
+        )
+
+    return wrapper
+
+# should think about making this a decorator?
+# is the jit here harmful / not best practice?
+@partial(jit, static_argnums=1)
+def _screen(value, f, lower=0.0, upper=np.inf):
+    r"""Return f only to valid values, and 0 or nan otherwise.
+
+    value: float or array_like
+    f: function
+        Takes one array-like argument and returns it in the same shape
+    lower: float
+        If a value is below this limit, return 0.0.
+        Must be non-negative.
+    upper: float
+        If a value is above this limit, return 0.0.
+        Must be larger than `lower`.
+
+    Returns
+    -------
+    jnp.array with shape of `value`.
+    """
+    test_abovelowerlimit = value > lower
+    test_belowupperlimit = value < upper
+    within_limits = test_abovelowerlimit & test_belowupperlimit
+
+    test_isfinite= jnp.isfinite(value)
+    test_nonneg = value >= 0.0
+    otherwise_valid = test_isfinite & test_nonneg
+
+    zeros_array = jnp.zeros_like(value)
+    results = f(value)
+
+    return jnp.select(
+        (within_limits, otherwise_valid),
+        (results, zeros_array), default=jnp.nan
+    )
 
 def _bosch_name_resolver(raw_reaction_name):
     reaction_name = name_resolver(raw_reaction_name)
@@ -18,7 +98,6 @@ def _bosch_name_resolver(raw_reaction_name):
             is not in the Bosch-Hale reaction set.""")
 
     return reaction_name
-
 
 class BoschCrossSection:
     r"""Cross section and derivative for four common reactions
@@ -85,7 +164,7 @@ class BoschCrossSection:
                     "unspecified."
                 )
             self.calculator = BoschCrossSectionCalc(Bg, a, b)
-        elif has_multiple_domains:
+        else:
             match energy_domain:
                 case "full":
                     self.calculator = BoschHybridCrossSectionCalc(
@@ -119,7 +198,10 @@ class BoschCrossSection:
         σ : array_like
             mb
         """
-        return self.calculator.cross_section(e)
+        e = jnp.atleast_1d(e)
+        f = self.calculator.cross_section
+        lower, upper = self.prescribed_domain
+        return _screen(e, f, lower=lower, upper=upper)
 
     def derivative(self, e):
         r"""Derivative w.r.t. energy of cross section
@@ -134,7 +216,10 @@ class BoschCrossSection:
         dσ_de : array_like
             mb/keV
         """
-        return self.calculator.dcrosssection_de(e)
+        e = jnp.atleast_1d(e)
+        f = self.calculator.dcrosssection_de
+        lower, upper = self.prescribed_domain
+        return _screen(e, f, lower=lower, upper=upper)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -314,7 +399,7 @@ class BoschHybridCrossSectionCalc:
         is_lower = e <= self.transition_energy
         σ_lower = self.lower_calc.cross_section(e)
         σ_upper = self.upper_calc.cross_section(e)
-        σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
+        σ = jnp.where(is_lower, σ_lower, σ_upper)
         return σ
 
     def dcrosssection_de(self, e):
@@ -333,7 +418,7 @@ class BoschHybridCrossSectionCalc:
         is_lower = e <= self.transition_energy
         σ_lower = self.lower_calc.dcrosssection_de(e)
         σ_upper = self.upper_calc.dcrosssection_de(e)
-        σ = is_lower * σ_lower + np.bitwise_not(is_lower) * σ_upper
+        σ = jnp.where(is_lower, σ_lower, σ_upper)
         return σ
 
 
@@ -426,7 +511,7 @@ class BoschCrossSectionCalc:
         """
 
         s = self.s(e)
-        return s / (e * np.exp(self.bg / np.sqrt(e)))
+        return s / (e * jnp.exp(self.bg / jnp.sqrt(e)))
 
     def dcrosssection_de(self, e):
         r"""Derivative of Equation (8)
@@ -441,7 +526,7 @@ class BoschCrossSectionCalc:
         dσ/de: array_like
             cm²/keV
         """
-        exp_term = np.exp(-self.bg / np.sqrt(e))
+        exp_term = jnp.exp(-self.bg / jnp.sqrt(e))
         return (
             exp_term
             * (
@@ -622,8 +707,8 @@ class BoschRateCoeffCalc:
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t**3))
-        exp_term = np.exp(-3 * ξ)
+        root_term = jnp.sqrt(ξ / (mrc2 * t**3))
+        exp_term = jnp.exp(-3 * ξ)
         return c1 * θ * root_term * exp_term
 
     def dratecoeff_dt(self, t):
@@ -643,12 +728,12 @@ class BoschRateCoeffCalc:
         θ = self.theta(t)
         ξ = self.xi(θ)
         mrc2 = self.mrc2
-        root_term = np.sqrt(ξ / (mrc2 * t**3))
-        exp_term = np.exp(-3 * ξ)
+        root_term = jnp.sqrt(ξ / (mrc2 * t**3))
+        exp_term = jnp.exp(-3 * ξ)
         dθ_dt = self.dtheta(t)
         dξ_dθ = self.dxi_dtheta(θ)
-        droot_dξ = 1 / (2 * t ** (3 / 2) * np.sqrt(mrc2 * ξ))
-        droot_dt = -(3 / 2) * np.sqrt(ξ / mrc2) * t ** (-5 / 2)
+        droot_dξ = 1 / (2 * t ** (3 / 2) * jnp.sqrt(mrc2 * ξ))
+        droot_dt = -(3 / 2) * jnp.sqrt(ξ / mrc2) * t ** (-5 / 2)
         dexp_dξ = -3 * exp_term
 
         term1 = dθ_dt * root_term * exp_term
@@ -662,7 +747,7 @@ if __name__ == "__main__":
 
     bh = BoschCrossSection("D(d,p)T")
     energy_domain = bh.prescribed_domain
-    e1 = np.geomspace(*energy_domain, 500)
+    e1 = jnp.geomspace(*energy_domain, 500)
     sigma = bh.cross_section(e1)
     print(bh.cross_section(1e-2))
     plt.loglog(e1, sigma)
