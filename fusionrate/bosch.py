@@ -33,21 +33,21 @@ def _wrap_for_screen(func, bounds):
     jnp.array with shape of `value`.
     """
     low, high = bounds
+    safe_value = (low + high)/2.0
 
     @functools.wraps(func)
-    @partial(jit, static_argnums=1)
-    def wrapper(x, **kwargs):
+    def wrapper(x):
         x = jnp.atleast_1d(x)
-        test_abovelowerlimit = value > low
-        test_belowupperlimit = value < high
+        test_abovelowerlimit = x >= low
+        test_belowupperlimit = x <= high
         within_limits = test_abovelowerlimit & test_belowupperlimit
 
-        test_isfinite= jnp.isfinite(value)
-        test_nonneg = value >= 0.0
+        test_isfinite= jnp.isfinite(x)
+        test_nonneg = x >= 0.0
         otherwise_valid = test_isfinite & test_nonneg
 
-        zeros_array = jnp.zeros_like(value)
-        results = f(value, **kwargs)
+        zeros_array = jnp.zeros_like(x)
+        results = func(jnp.where(within_limit, x, safe_value))
 
         return jnp.select(
             (within_limits, otherwise_valid),
@@ -58,12 +58,12 @@ def _wrap_for_screen(func, bounds):
 
 # should think about making this a decorator?
 # is the jit here harmful / not best practice?
-@partial(jit, static_argnums=1)
-def _screen(value, f, lower=0.0, upper=np.inf):
+# @partial(jit, static_argnums=(1,))
+def _screen(value, func, lower=0.0, upper=np.inf):
     r"""Return f only to valid values, and 0 or nan otherwise.
 
     value: float or array_like
-    f: function
+    func: function
         Takes one array-like argument and returns it in the same shape
     lower: float
         If a value is below this limit, return 0.0.
@@ -76,8 +76,8 @@ def _screen(value, f, lower=0.0, upper=np.inf):
     -------
     jnp.array with shape of `value`.
     """
-    test_abovelowerlimit = value > lower
-    test_belowupperlimit = value < upper
+    test_abovelowerlimit = value >= lower
+    test_belowupperlimit = value <= upper
     within_limits = test_abovelowerlimit & test_belowupperlimit
 
     test_isfinite= jnp.isfinite(value)
@@ -85,7 +85,8 @@ def _screen(value, f, lower=0.0, upper=np.inf):
     otherwise_valid = test_isfinite & test_nonneg
 
     zeros_array = jnp.zeros_like(value)
-    results = f(value)
+    safe_value = 10.0 # 10 keV is a safe value
+    results = func(jnp.where(within_limits, value, safe_value))
 
     return jnp.select(
         (within_limits, otherwise_valid),
