@@ -1,7 +1,8 @@
+from functools import partial
+
 import numpy as np
 
 from fusionrate.backend import jnp
-from fusionrate.backend import jit
 
 from fusionrate.reactionnames import name_resolver
 from fusionrate.reactionnames import DDHE3_NAME
@@ -9,8 +10,6 @@ from fusionrate.reactionnames import DDT_NAME
 from fusionrate.reactionnames import DHE3_NAME
 from fusionrate.reactionnames import DT_NAME
 from fusionrate.parameter import Parameter
-
-from functools import partial
 
 # this doesn't work as
 # @_wrap_for_screen(self.prescribed_bounds)
@@ -37,7 +36,7 @@ def _wrap_for_screen(func, bounds):
 
     @functools.wraps(func)
     def wrapper(x):
-        x = jnp.atleast_1d(x)
+        x = jnp.asarray(x)
         test_abovelowerlimit = x >= low
         test_belowupperlimit = x <= high
         within_limits = test_abovelowerlimit & test_belowupperlimit
@@ -57,7 +56,7 @@ def _wrap_for_screen(func, bounds):
     return wrapper
 
 # should think about making this a decorator?
-# is the jit here harmful / not best practice?
+# is the jit here harmful / not best practice? Or necessary?
 # @partial(jit, static_argnums=(1,))
 def _screen(value, func, lower=0.0, upper=np.inf):
     r"""Return f only to valid values, and 0 or nan otherwise.
@@ -202,7 +201,7 @@ class BoschCrossSection:
         σ : array_like
             mb
         """
-        e = jnp.atleast_1d(e)
+        #e = jnp.asarray(e)
         f = self.calculator.cross_section
         lower, upper = self.prescribed_domain
         return _screen(e, f, lower=lower, upper=upper)
@@ -220,7 +219,7 @@ class BoschCrossSection:
         dσ_de : array_like
             mb/keV
         """
-        e = jnp.atleast_1d(e)
+        #e = jnp.asarray(e, dtype=jnp.float)
         f = self.calculator.dcrosssection_de
         lower, upper = self.prescribed_domain
         return _screen(e, f, lower=lower, upper=upper)
@@ -267,7 +266,7 @@ class BoschRateCoeff:
         DT_NAME: {
             "Bg": 34.3827,
             "mrc²": 1124656,
-            "c": [
+            "c": (
                 1.17302e-9,
                 1.51361e-2,
                 7.51886e-2,
@@ -275,13 +274,13 @@ class BoschRateCoeff:
                 1.35000e-2,
                 -1.06750e-4,
                 1.36600e-5,
-            ],
-            "domain": [0.2, 100.],
+            ),
+            "domain": (0.2, 100.),
         },
         DHE3_NAME: {
             "Bg": 68.7508,
             "mrc²": 1124572,
-            "c": [
+            "c": (
                 5.51036e-10,
                 6.41918e-3,
                 -2.02896e-3,
@@ -289,20 +288,20 @@ class BoschRateCoeff:
                 1.35776e-4,
                 0.,
                 0.,
-            ],
-            "domain": [0.5, 190.],
+            ),
+            "domain": (0.5, 190.),
         },
         DDHE3_NAME: {
             "Bg": 31.3970,
             "mrc²": 937814,
-            "c": [5.43360e-12, 5.85778e-3, 7.68222e-3, 0., -2.96400e-6, 0., 0.],
-            "domain": [0.2, 100.],
+            "c": (5.43360e-12, 5.85778e-3, 7.68222e-3, 0., -2.96400e-6, 0., 0.),
+            "domain": (0.2, 100.),
         },
         DDT_NAME: {
             "Bg": 31.3970,
             "mrc²": 937814,
-            "c": [5.65718e-12, 3.41267e-3, 1.99167e-3, 0., 1.05060e-5, 0., 0.],
-            "domain": [0.2, 100.],
+            "c": (5.65718e-12, 3.41267e-3, 1.99167e-3, 0., 1.05060e-5, 0., 0.),
+            "domain": (0.2, 100.),
         },
     }
 
@@ -334,7 +333,9 @@ class BoschRateCoeff:
         <σv> : array_like
             cm³/s
         """
-        return self.calculator.ratecoeff(t)
+        lower, upper = self.extrapolable_domain
+        f = self.calculator.ratecoeff
+        return _screen(t, f, lower=lower, upper=upper)
 
     def derivative(self, t):
         r"""Derivative of rate coefficient <σv>
@@ -361,12 +362,19 @@ class BoschRateCoeff:
         return self.COEFFICIENTS[self.reaction_name]["domain"]
 
     @property
+    def extrapolable_domain(self):
+        # at the lower bound, rate coefficients are below 1e-130.
+        # at the upper bound, all return reasonable results
+        lower, upper = self.prescribed_domain
+        return (3e-4, upper*1.25)
+
+    @property
     def parameters(self):
         return (
             Parameter(
                 name="Temperature",
                 bounds=self.prescribed_domain,
-                extrapolable_bounds=self.prescribed_domain,
+                extrapolable_bounds=self.extrapolable_domain,
                 unit="keV",
             ),
         )

@@ -20,6 +20,44 @@ class TestBoschOffNormals(unittest.TestCase):
         result = cs.cross_section(z)
         assert np.allclose(result, z)
 
+class TestBoschTypes(unittest.TestCase):
+
+    def setUp(self):
+        self.cs = bosch.BoschCrossSection("DT")
+        self.rc = bosch.BoschRateCoeff("DT")
+        self.cross_section = self.cs.cross_section
+        self.rate_coefficient = self.rc.rate_coefficient
+
+    def test_cs_scalar(self):
+        z = 1.0
+        result = self.cross_section(z)
+        assert result.ndim == 0
+
+    def test_cs_zerod(self):
+        z = jnp.array(1.0)
+        result = self.cross_section(z)
+        assert result.ndim == 0
+
+    def test_cs_oned(self):
+        z = jnp.array([1.0])
+        result = self.cross_section(z)
+        assert result.ndim == 1
+
+    def test_rc_scalar(self):
+        z = 1.0
+        result = self.rate_coefficient(z)
+        assert result.ndim == 0
+
+    def test_rc_zerod(self):
+        z = jnp.array(1.0)
+        result = self.rate_coefficient(z)
+        assert result.ndim == 0
+
+    def test_rc_oned(self):
+        z = jnp.array([1.0])
+        result = self.rate_coefficient(z)
+        assert result.ndim == 1
+
 class TestBoschCrossSection(unittest.TestCase):
     r"""
     Results are from Table V of
@@ -126,9 +164,12 @@ class TestBoschRateCoeff(unittest.TestCase):
         # temperatures in keV
         self.table_temperatures = np.array([0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0])
 
-    def compare_results(self, r, actual):
-        code_results = r.rate_coefficient(self.table_temperatures)
-        compare = np.allclose(code_results, actual, rtol=5e-4, atol=1e-40)
+    def compare_results(self, rc, expected):
+        code_results = rc.rate_coefficient(self.table_temperatures)
+        compare = np.allclose(code_results, expected, rtol=5e-4, atol=1e-40)
+        if not compare:
+            print(f"Expected: {expected}")
+            print(f"Actual  : {code_results}")
         assert compare
 
     def test_rate_coefficient_dt(self):
