@@ -1,7 +1,9 @@
 from functools import partial
+import functools
 
 import numpy as np
 
+from fusionrate.backend import jit
 from fusionrate.backend import jnp
 
 from fusionrate.reactionnames import name_resolver
@@ -11,10 +13,7 @@ from fusionrate.reactionnames import DHE3_NAME
 from fusionrate.reactionnames import DT_NAME
 from fusionrate.parameter import Parameter
 
-# this doesn't work as
-# @_wrap_for_screen(self.prescribed_bounds)
-# because self does not yet exist.
-def _wrap_for_screen(func, bounds):
+def _enforcebounds(func, bounds):
     r"""Return func only for valid values, and 0 or nan otherwise.
 
     value: float or array_like
@@ -35,6 +34,7 @@ def _wrap_for_screen(func, bounds):
     safe_value = (low + high)/2.0
 
     @functools.wraps(func)
+    @jit
     def wrapper(x):
         x = jnp.asarray(x)
         test_abovelowerlimit = x >= low
@@ -46,7 +46,7 @@ def _wrap_for_screen(func, bounds):
         otherwise_valid = test_isfinite & test_nonneg
 
         zeros_array = jnp.zeros_like(x)
-        results = func(jnp.where(within_limit, x, safe_value))
+        results = func(jnp.where(within_limits, x, safe_value))
 
         return jnp.select(
             (within_limits, otherwise_valid),
@@ -54,43 +54,6 @@ def _wrap_for_screen(func, bounds):
         )
 
     return wrapper
-
-# should think about making this a decorator?
-# is the jit here harmful / not best practice? Or necessary?
-# @partial(jit, static_argnums=(1,))
-def _screen(func, value, lower=0.0, upper=np.inf):
-    r"""Return f only to valid values, and 0 or nan otherwise.
-
-    value: float or array_like
-    func: function
-        Takes one array-like argument and returns it in the same shape
-    lower: float
-        If a value is below this limit, return 0.0.
-        Must be non-negative.
-    upper: float
-        If a value is above this limit, return 0.0.
-        Must be larger than `lower`.
-
-    Returns
-    -------
-    jnp.array with shape of `value`.
-    """
-    test_abovelowerlimit = value >= lower
-    test_belowupperlimit = value <= upper
-    within_limits = test_abovelowerlimit & test_belowupperlimit
-
-    test_isfinite= jnp.isfinite(value)
-    test_nonneg = value >= 0.0
-    otherwise_valid = test_isfinite & test_nonneg
-
-    zeros_array = jnp.zeros_like(value)
-    safe_value = 10.0 # 10 keV is a safe value
-    results = func(jnp.where(within_limits, value, safe_value))
-
-    return jnp.select(
-        (within_limits, otherwise_valid),
-        (results, zeros_array), default=jnp.nan
-    )
 
 def _bosch_name_resolver(raw_reaction_name):
     reaction_name = name_resolver(raw_reaction_name)
@@ -166,21 +129,26 @@ class BoschCrossSection:
                     "Keyword energy_domain should be set to 'full' or left "
                     "unspecified."
                 )
-            self.calculator = BoschCrossSectionCalc(Bg, a, b)
+            calc = BoschCrossSectionCalc(Bg, a, b)
         else:
             match energy_domain:
                 case "full":
-                    self.calculator = BoschHybridCrossSectionCalc(
+                    calc = BoschHybridCrossSectionCalc(
                         Bg, a, b, coeffs["transition"]
                     )
                 case "lower":
-                    self.calculator = BoschCrossSectionCalc(Bg, a[0], b[0])
+                    calc = BoschCrossSectionCalc(Bg, a[0], b[0])
                 case "upper":
-                    self.calculator = BoschCrossSectionCalc(Bg, a[1], b[1])
+                    calc = BoschCrossSectionCalc(Bg, a[1], b[1])
                 case _:
                     raise ValueError(
                         f"Unknown energy domain '{energy_domain}'; choices are 'full', 'upper', and 'lower'."
                     )
+        self.calculator = calc
+
+        domain = self.prescribed_domain
+        self.cross_section = _enforcebounds(self.cross_section, domain)
+        self.derivative = _enforcebounds(self.derivative, domain)
 
 
     @classmethod
@@ -201,10 +169,7 @@ class BoschCrossSection:
         σ : array_like
             mb
         """
-        #e = jnp.asarray(e)
-        f = self.calculator.cross_section
-        lower, upper = self.prescribed_domain
-        return _screen(f, e, lower=lower, upper=upper)
+        return self.calculator.cross_section(e)
 
     def derivative(self, e):
         r"""Derivative w.r.t. energy of cross section
@@ -219,10 +184,7 @@ class BoschCrossSection:
         dσ_de : array_like
             mb/keV
         """
-        #e = jnp.asarray(e, dtype=jnp.float)
-        f = self.calculator.dcrosssection_de
-        lower, upper = self.prescribed_domain
-        return _screen(f, e, lower=lower, upper=upper)
+        return self.calculator.dcrosssection_de(e)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -313,6 +275,10 @@ class BoschRateCoeff:
         c = coeffs["c"]
         self.calculator = BoschRateCoeffCalc(Bg, mrc2, c)
 
+        domain = self.extrapolable_domain
+        self.rate_coefficient = _enforcebounds(self.rate_coefficient, domain)
+        self.derivative = _enforcebounds(self.derivative, domain)
+
     @classmethod
     def provides_reactions(cls):
         r"""List of canonical names for reactions implemented."""
@@ -333,9 +299,7 @@ class BoschRateCoeff:
         <σv> : array_like
             cm³/s
         """
-        lower, upper = self.extrapolable_domain
-        f = self.calculator.ratecoeff
-        return _screen(f, t, lower=lower, upper=upper)
+        return self.calculator.ratecoeff(t)
 
     def derivative(self, t):
         r"""Derivative of rate coefficient <σv>
