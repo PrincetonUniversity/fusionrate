@@ -58,7 +58,7 @@ def _wrap_for_screen(func, bounds):
 # should think about making this a decorator?
 # is the jit here harmful / not best practice? Or necessary?
 # @partial(jit, static_argnums=(1,))
-def _screen(value, func, lower=0.0, upper=np.inf):
+def _screen(func, value, lower=0.0, upper=np.inf):
     r"""Return f only to valid values, and 0 or nan otherwise.
 
     value: float or array_like
@@ -204,7 +204,7 @@ class BoschCrossSection:
         #e = jnp.asarray(e)
         f = self.calculator.cross_section
         lower, upper = self.prescribed_domain
-        return _screen(e, f, lower=lower, upper=upper)
+        return _screen(f, e, lower=lower, upper=upper)
 
     def derivative(self, e):
         r"""Derivative w.r.t. energy of cross section
@@ -222,7 +222,7 @@ class BoschCrossSection:
         #e = jnp.asarray(e, dtype=jnp.float)
         f = self.calculator.dcrosssection_de
         lower, upper = self.prescribed_domain
-        return _screen(e, f, lower=lower, upper=upper)
+        return _screen(f, e, lower=lower, upper=upper)
 
     def canonical_reaction_name(self):
         return self.reaction_name
@@ -335,7 +335,7 @@ class BoschRateCoeff:
         """
         lower, upper = self.extrapolable_domain
         f = self.calculator.ratecoeff
-        return _screen(t, f, lower=lower, upper=upper)
+        return _screen(f, t, lower=lower, upper=upper)
 
     def derivative(self, t):
         r"""Derivative of rate coefficient <σv>
