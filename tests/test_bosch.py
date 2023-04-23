@@ -1,44 +1,102 @@
 import fusionrate.bosch as bosch
 from fusionrate.backend import jnp
-from .utility import has_nans
+from .utility import has_nans, has_zeros, no_nans
 
 import unittest
 import numpy as np
 
-# These tests focus on ensuring the correctness of the functions, given
-# reasonable values, by comparing to results in the Bosch Hale paper.
-# They don't test the behavior under bad or unreasonable inputs.
+# These tests examine
 
-class TestBoschOffNormals(unittest.TestCase):
+class TestBoschCrossSectionOffNormals(unittest.TestCase):
 
     def setUp(self):
-        pass
+        reaction = "DT"
+        cs = bosch.BoschCrossSection(reaction)
+        self.cross_section = cs.cross_section
+        self.d_cross_section_de = cs.derivative
+
+        rc = bosch.BoschRateCoeff(reaction)
+        self.rate_coefficient = rc.rate_coefficient
+        self.d_rate_coefficient_dt = rc.derivative
+
+    def perform_test(self, z, f_test):
+        """Test both cross section and rate coefficient"""
+        functions_to_test = (self.cross_section,
+                             self.rate_coefficient,
+                             self.d_cross_section_de,
+                             self.d_rate_coefficient_dt)
+        for f in functions_to_test:
+            result = self.cross_section(z)
+            f_test(result)
 
     def test_zero(self):
-        cs = bosch.BoschCrossSection("DT")
-        z = jnp.array([0.0])
-        result = cs.cross_section(z)
-        assert np.allclose(result, z)
+        """Zero outputs as zero"""
+        z = jnp.array(0.0)
+        self.perform_test(z, has_zeros)
 
-class TestBoschTypes(unittest.TestCase):
+    def test_neg(self):
+        """Negative outputs as NaN"""
+        z = jnp.array(-1.0)
+        self.perform_test(z, has_nans)
+
+    def test_inf(self):
+        """Inf outputs as NaN"""
+        z = jnp.array(jnp.inf)
+        self.perform_test(z, has_nans)
+
+    def test_small(self):
+        """Very small cross sections are zero"""
+        z = jnp.array(1.0e-250)
+        self.perform_test(z, has_zeros)
+
+    def test_large(self):
+        """Very large cross sections are zero"""
+        z = jnp.array(1.0e+250)
+        self.perform_test(z, has_zeros)
+
+    def test_cs_wide_oom(self):
+        """Positive inputs yield non-negative outputs"""
+        z = jnp.geomspace(1e-250, 1e100, num=2000)
+        results = self.cross_section(z)
+        assert np.all(results >= 0.0)
+
+    def test_rc_wide_oom(self):
+        """Positive inputs yield non-negative outputs"""
+        z = jnp.geomspace(1e-250, 1e100, num=2000)
+        results = self.cross_section(z)
+        assert np.all(results >= 0.0)
+
+    def test_derivatives_wide_oom(self):
+        """Positive inputs yield non-negative outputs"""
+        z = jnp.geomspace(1e-250, 1e100, num=2000)
+        results_cs = self.d_cross_section_de(z)
+        no_nans(results_cs)
+        results_rc = self.d_rate_coefficient_dt(z)
+        no_nans(results_rc)
+
+class TestBoschShapes(unittest.TestCase):
+    """Test shapes & shape promotion of inputs"""
 
     def setUp(self):
-        self.cs = bosch.BoschCrossSection("DT")
-        self.rc = bosch.BoschRateCoeff("DT")
-        self.cross_section = self.cs.cross_section
-        self.rate_coefficient = self.rc.rate_coefficient
+        cs = bosch.BoschCrossSection("DT")
+        rc = bosch.BoschRateCoeff("DT")
+        self.cross_section = cs.cross_section
+        self.rate_coefficient = rc.rate_coefficient
 
     def test_cs_scalar(self):
+        """Scalars output as zero-D arrays"""
         z = 1.0
         result = self.cross_section(z)
         assert result.ndim == 0
 
     def test_cs_zerod(self):
+        """Zero-D arrays output as same"""
         z = jnp.array(1.0)
         result = self.cross_section(z)
         assert result.ndim == 0
 
     def test_cs_oned(self):
+        """One-D arrays output as same"""
         z = jnp.array([1.0])
         result = self.cross_section(z)
         assert result.ndim == 1
@@ -57,6 +115,9 @@ class TestBoschTypes(unittest.TestCase):
         z = jnp.array([1.0])
         result = self.rate_coefficient(z)
         assert result.ndim == 1
+
+# These tests focus on ensuring the correctness of the functions, given
+# reasonable values, by comparing to results in the paper.
 
 class TestBoschCrossSection(unittest.TestCase):
     r"""
