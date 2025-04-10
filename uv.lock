@@ -108,12 +108,15 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-dev = [
-    { name = "matplotlib" },
-]
 tests = [
     { name = "jax" },
     { name = "pytest" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "jax" },
+    { name = "matplotlib" },
 ]
 
 [package.metadata]
@@ -121,13 +124,18 @@ requires-dist = [
     { name = "cubature", specifier = ">=0.18.6" },
     { name = "h5py", specifier = ">=3.13.0" },
     { name = "jax", extras = ["cpu"], marker = "extra == 'tests'", specifier = ">=0.5.3" },
-    { name = "matplotlib", marker = "extra == 'dev'", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=2.2.4" },
     { name = "platformdirs", specifier = ">=4.3.7" },
     { name = "pytest", marker = "extra == 'tests'", specifier = ">=8.3.5" },
     { name = "scipy", specifier = ">=1.15.2" },
 ]
-provides-extras = ["tests", "dev"]
+provides-extras = ["tests"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jax", extras = ["cpu"], specifier = ">=0.5.3" },
+    { name = "matplotlib", specifier = ">=3.10.1" },
+]
 
 [[package]]
 name = "h5py"

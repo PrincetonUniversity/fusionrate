@@ -32,13 +32,16 @@ tests = [
     "pytest>=8.3.5",
     "jax[cpu]>=0.5.3",
 ]
-dev = [
-    "matplotlib>=3.10.1",
-]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra"
 testpaths = [
   "tests",
+]
+
+[dependency-groups]
+dev = [
+    "jax[cpu]>=0.5.3",
+    "matplotlib>=3.10.1",
 ]
