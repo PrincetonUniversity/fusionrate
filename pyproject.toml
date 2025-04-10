@@ -1,5 +1,5 @@
 [project]
-name = "fusionrate"
+name = "fusionreax"
 version = "0.1.0"
 description = "Fusion cross sections and rate coefficients"
 readme = "README.md"

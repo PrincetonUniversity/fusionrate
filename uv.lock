@@ -96,7 +96,7 @@ wheels = [
 ]
 
 [[package]]
-name = "fusionrate"
+name = "fusionreax"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
@@ -111,13 +111,8 @@ dependencies = [
 dev = [
     { name = "matplotlib" },
 ]
-examples = [
-    { name = "matplotlib" },
-]
-jax = [
-    { name = "jax" },
-]
 tests = [
+    { name = "jax" },
     { name = "pytest" },
 ]
 
@@ -125,15 +120,14 @@ tests = [
 requires-dist = [
     { name = "cubature", specifier = ">=0.18.6" },
     { name = "h5py", specifier = ">=3.13.0" },
-    { name = "jax", extras = ["cpu"], marker = "extra == 'jax'", specifier = ">=0.5.3" },
+    { name = "jax", extras = ["cpu"], marker = "extra == 'tests'", specifier = ">=0.5.3" },
     { name = "matplotlib", marker = "extra == 'dev'", specifier = ">=3.10.1" },
-    { name = "matplotlib", marker = "extra == 'examples'", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=2.2.4" },
     { name = "platformdirs", specifier = ">=4.3.7" },
     { name = "pytest", marker = "extra == 'tests'", specifier = ">=8.3.5" },
     { name = "scipy", specifier = ">=1.15.2" },
 ]
-provides-extras = ["tests", "jax", "examples", "dev"]
+provides-extras = ["tests", "dev"]
 
 [[package]]
 name = "h5py"

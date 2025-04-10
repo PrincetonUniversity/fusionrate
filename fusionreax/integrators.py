@@ -1,12 +1,12 @@
 from cubature import cubature
 import numpy as np
 
-from fusionrate.constants import Distributions
-from fusionrate.constants import atomic_mass_unit as amu
-from fusionrate.constants import kiloelectronvolt as keV
-from fusionrate.constants import millibarn_meters_squared_to_cubic_centimeter
-from fusionrate.physics import reduced_mass
-from fusionrate.physics import v_th
+from fusionreax.constants import Distributions
+from fusionreax.constants import atomic_mass_unit as amu
+from fusionreax.constants import kiloelectronvolt as keV
+from fusionreax.constants import millibarn_meters_squared_to_cubic_centimeter
+from fusionreax.physics import reduced_mass
+from fusionreax.physics import v_th
 
 
 
@@ -432,8 +432,8 @@ rate_coefficient_integrator_factory.register_integrator(
 )
 
 if __name__ == "__main__":
-    from fusionrate.endf import ENDFCrossSection
-    from fusionrate.reaction import ReactionCore
+    from fusionreax.endf import ENDFCrossSection
+    from fusionreax.reaction import ReactionCore
     import matplotlib.pyplot as plt
     import inspect
 

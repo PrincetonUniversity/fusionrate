@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fusionrate.bosch import BoschRateCoeff
-from fusionrate.reaction import Reaction
+from fusionreax.bosch import BoschRateCoeff
+from fusionreax.reaction import Reaction
 
 
 line_styles = [

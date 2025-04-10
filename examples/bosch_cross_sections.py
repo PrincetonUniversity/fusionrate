@@ -1,4 +1,4 @@
-from fusionrate.bosch import BoschCrossSection
+from fusionreax.bosch import BoschCrossSection
 
 import matplotlib.pyplot as plt
 import numpy as np

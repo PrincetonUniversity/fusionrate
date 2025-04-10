@@ -1,7 +1,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-![Testing](https://github.com/PrincetonUniversity/fusionrate/actions/workflows/main.yml/badge.svg?event=push)
+![Testing](https://github.com/PrincetonUniversity/fusionreax/actions/workflows/main.yml/badge.svg?event=push)
 
-fusionrate
+fusionreax
 ==========
 
 This python module contains data and functions to calculate and quickly look up fusion reaction rate coefficients.
@@ -21,7 +21,7 @@ Usage
 Note that the API is still in alpha.
 
 ```
->>> from fusionrate import Reaction
+>>> from fusionreax import Reaction
 >>> dt = Reaction("D+T")
 >>> temperature = 10 # keV
 >>> cs = dt.cross_section(temperature)  # millibarns
@@ -41,11 +41,11 @@ Installation
 
 For now, install manually using pip:
 
-`pip install -e fusionrate`.
+`pip install -e fusionreax`.
 
 Eventually this package should be able to be installed from `PyPi`, using pip:
 
-`pip install fusionrate`
+`pip install fusionreax`
 
 Handling of unreasonable numerical inputs
 =========================================

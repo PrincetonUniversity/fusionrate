@@ -1,9 +1,9 @@
 import numpy as np
 import scipy.interpolate
 
-from fusionrate.constants import Distributions
-from fusionrate.load_data import load_ratecoeff_hdf5
-from fusionrate.parameter import Parameter
+from fusionreax.constants import Distributions
+from fusionreax.load_data import load_ratecoeff_hdf5
+from fusionreax.parameter import Parameter
 
 
 def _safe_log10(t):

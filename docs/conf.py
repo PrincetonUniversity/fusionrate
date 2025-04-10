@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'fusionrate'
+project = 'fusionreax'
 copyright = '2023, Jacob A. Schwartz'
 author = 'Jacob A. Schwartz'
 

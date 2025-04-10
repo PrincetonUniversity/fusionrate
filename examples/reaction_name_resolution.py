@@ -1,6 +1,6 @@
 # This demonstrates that there are many strings which can
 # by resolved to the canonical reaction names.
-from fusionrate.reactionnames import name_resolver
+from fusionreax.reactionnames import name_resolver
 
 
 def resolve(s):

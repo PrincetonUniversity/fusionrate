@@ -7,10 +7,10 @@
 # The second plot compares the two (since they are quite close.)
 # The dashed line represents the region outside the stated validity of the
 # Bosch-Hale formula.
-import fusionrate.reactionnames as rn
-from fusionrate.bosch import BoschCrossSection
-from fusionrate.ion_data import ion_mass
-from fusionrate.load_data import load_data_file
+import fusionreax.reactionnames as rn
+from fusionreax.bosch import BoschCrossSection
+from fusionreax.ion_data import ion_mass
+from fusionreax.load_data import load_data_file
 
 import matplotlib.pyplot as plt
 import numpy as np

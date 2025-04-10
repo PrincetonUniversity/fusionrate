@@ -1,11 +1,11 @@
-from fusionrate.interpolators import RateCoefficientInterpolator
+from fusionreax.interpolators import RateCoefficientInterpolator
 
 import unittest
 import numpy as np
 from .utility import has_nans, no_nans
-from fusionrate.reactionnames import DT_NAME
+from fusionreax.reactionnames import DT_NAME
 
-from fusionrate.load_data import ratecoeff_data_exists
+from fusionreax.load_data import ratecoeff_data_exists
 
 import pytest
 

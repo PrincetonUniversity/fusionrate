@@ -1,7 +1,7 @@
 import numpy as np
 
-from fusionrate.constants import atomic_mass_unit as amu
-from fusionrate.constants import kiloelectronvolt as keV
+from fusionreax.constants import atomic_mass_unit as amu
+from fusionreax.constants import kiloelectronvolt as keV
 
 
 def v_th(T, m):

@@ -3,12 +3,12 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fusionrate.endf import ENDFCrossSection
-from fusionrate.load_data import save_ratecoeff_hdf5
-from fusionrate.ratecoefficient import RateCoefficientIntegratorBiMaxwellian
-from fusionrate.reaction import ReactionCore
+from fusionreax.endf import ENDFCrossSection
+from fusionreax.load_data import save_ratecoeff_hdf5
+from fusionreax.ratecoefficient import RateCoefficientIntegratorBiMaxwellian
+from fusionreax.reaction import ReactionCore
 
-from fusionrate.reactionnames import ALL_REACTIONS
+from fusionreax.reactionnames import ALL_REACTIONS
 
 min_temp = 10**-2
 max_temp = 10**4

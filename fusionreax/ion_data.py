@@ -2,7 +2,7 @@ import json
 from importlib import resources
 import os
 
-from fusionrate.load_data import DEFAULT_DATA_DIR
+from fusionreax.load_data import DEFAULT_DATA_DIR
 
 __all__ = ["ion_mass"]
 

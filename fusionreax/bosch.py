@@ -3,15 +3,15 @@ import functools
 
 import numpy as np
 
-from fusionrate.backend import jit
-from fusionrate.backend import jnp
+from fusionreax.backend import jit
+from fusionreax.backend import jnp
 
-from fusionrate.reactionnames import name_resolver
-from fusionrate.reactionnames import DDHE3_NAME
-from fusionrate.reactionnames import DDT_NAME
-from fusionrate.reactionnames import DHE3_NAME
-from fusionrate.reactionnames import DT_NAME
-from fusionrate.parameter import Parameter
+from fusionreax.reactionnames import name_resolver
+from fusionreax.reactionnames import DDHE3_NAME
+from fusionreax.reactionnames import DDT_NAME
+from fusionreax.reactionnames import DHE3_NAME
+from fusionreax.reactionnames import DT_NAME
+from fusionreax.parameter import Parameter
 
 def _enforcebounds(func, bounds):
     r"""Return func only for valid values, and 0 or nan otherwise.

@@ -33,7 +33,7 @@ import warnings
 
 import numpy as np
 
-from fusionrate.constants import PROJECT
+from fusionreax.constants import PROJECT
 
 PROJECT_ALLCAPS = PROJECT.upper()
 

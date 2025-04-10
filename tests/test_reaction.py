@@ -1,10 +1,10 @@
-from fusionrate import Reaction
+from fusionreax import Reaction
 
 import unittest
 import numpy as np
 from .utility import *
-from fusionrate.reactionnames import ALL_REACTIONS as all_reactions
-from fusionrate.reactionnames import DT_NAME
+from fusionreax.reactionnames import ALL_REACTIONS as all_reactions
+from fusionreax.reactionnames import DT_NAME
 
 import pytest
 

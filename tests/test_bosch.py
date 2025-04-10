@@ -1,5 +1,5 @@
-import fusionrate.bosch as bosch
-from fusionrate.backend import jnp
+import fusionreax.bosch as bosch
+from fusionreax.backend import jnp
 from .utility import has_nans, has_zeros, no_nans
 
 import unittest

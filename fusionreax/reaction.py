@@ -1,14 +1,14 @@
 import numpy as np
 
-import fusionrate.reactionnames as rn
-from fusionrate.bosch import BoschCrossSection
-from fusionrate.bosch import BoschRateCoeff
-from fusionrate.endf import ENDFCrossSection
-from fusionrate.ion_data import ion_mass
-from fusionrate.integrators import rate_coefficient_integrator_factory
-from fusionrate.interpolators import RateCoefficientInterpolator
-from fusionrate.constants import Distributions
-from fusionrate.load_data import ratecoeff_data_exists
+import fusionreax.reactionnames as rn
+from fusionreax.bosch import BoschCrossSection
+from fusionreax.bosch import BoschRateCoeff
+from fusionreax.endf import ENDFCrossSection
+from fusionreax.ion_data import ion_mass
+from fusionreax.integrators import rate_coefficient_integrator_factory
+from fusionreax.interpolators import RateCoefficientInterpolator
+from fusionreax.constants import Distributions
+from fusionreax.load_data import ratecoeff_data_exists
 
 import functools
 
@@ -452,7 +452,7 @@ class Reaction:
 
         Examples
         --------
-        >>> from fusionrate import Reaction
+        >>> from fusionreax import Reaction
         >>> r = Reaction("D+T")
         >>> r.available_distributions()
         ["Maxwellian"]

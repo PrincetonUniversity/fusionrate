@@ -2,10 +2,10 @@ import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.optimize import root
 
-import fusionrate.reactionnames as rn
-from fusionrate.ion_data import ion_mass
-from fusionrate.load_data import cross_section_data
-from fusionrate.parameter import Parameter
+import fusionreax.reactionnames as rn
+from fusionreax.ion_data import ion_mass
+from fusionreax.load_data import cross_section_data
+from fusionreax.parameter import Parameter
 
 import functools
 

@@ -1,22 +1,22 @@
-import fusionrate.reactionnames as rn
-from fusionrate.reactionnames import name_resolver
+import fusionreax.reactionnames as rn
+from fusionreax.reactionnames import name_resolver
 
-from fusionrate.reactionnames import DT_NAME
-from fusionrate.reactionnames import DHE3_NAME
-from fusionrate.reactionnames import DDT_NAME
-from fusionrate.reactionnames import DDHE3_NAME
+from fusionreax.reactionnames import DT_NAME
+from fusionreax.reactionnames import DHE3_NAME
+from fusionreax.reactionnames import DDT_NAME
+from fusionreax.reactionnames import DDHE3_NAME
 
-from fusionrate.reactionnames import TT_NAME
-from fusionrate.reactionnames import HH_NAME
-from fusionrate.reactionnames import HT_NAME
-from fusionrate.reactionnames import HTD_NAME
+from fusionreax.reactionnames import TT_NAME
+from fusionreax.reactionnames import HH_NAME
+from fusionreax.reactionnames import HT_NAME
+from fusionreax.reactionnames import HTD_NAME
 
-from fusionrate.reactionnames import PLI6_NAME
-from fusionrate.reactionnames import PB11_NAME
+from fusionreax.reactionnames import PLI6_NAME
+from fusionreax.reactionnames import PB11_NAME
 
-from fusionrate.reactionnames import DLI6A_NAME
-from fusionrate.reactionnames import DLI6N_NAME
-from fusionrate.reactionnames import DLI6P_NAME
+from fusionreax.reactionnames import DLI6A_NAME
+from fusionreax.reactionnames import DLI6N_NAME
+from fusionreax.reactionnames import DLI6P_NAME
 
 import pytest
 
