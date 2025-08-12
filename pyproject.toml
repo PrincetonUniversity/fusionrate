@@ -31,6 +31,9 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/PlasmaControl/fusionrate"
 
+[tool.setuptools.package-data]
+fusionrate = ["data/*.json", "data/*.csv", "data/*.txt"]
+
 [project.optional-dependencies]
 tests = [
   "pytest",
